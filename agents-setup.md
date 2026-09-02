@@ -72,6 +72,62 @@ Each of your 4 teammates runs their own gateway + own free keys = 4x budget agai
 3. **Reliability varies.** Free catalogs change weekly (Cerebras dropped models mid-2026). Fallback handles it, but DON'T bet the live demo on free tiers. Keep one stable/paid key for the demo moment.
 4. **ToS.** Use tools that route YOUR OWN keys (freellmapi does). Avoid gpt4free-style tools that scrape/share others' keys - ToS violation + unreliable.
 
+## Step-by-step: getting each free key (no card)
+
+Do in order, ~5 min each. Copy each key immediately (often shown once). Minimum viable = just Groq + Gemini.
+
+### 1. Groq (do first - easiest/fastest)
+1. console.groq.com
+2. Sign in (Google/GitHub)
+3. Left menu -> API Keys -> Create API Key
+4. Copy the `gsk_...` key now (shown once)
+5. Model: `llama-3.3-70b-versatile`
+
+### 2. Google Gemini (biggest context, simplest)
+1. aistudio.google.com
+2. Sign in with Google
+3. Get API key (top-left) -> Create API key
+4. Copy the `AIza...` key
+5. Model: `gemini-flash`
+
+### 3. Cerebras (fast, ~1M/day)
+1. cloud.cerebras.ai
+2. Sign up (Google/email)
+3. API Keys -> Generate key
+4. Copy `csk-...`
+5. Model: `gpt-oss-120b`
+
+### 4. Mistral (biggest budget ~1B/mo, best for code)
+1. console.mistral.ai
+2. Sign up
+3. API Keys -> Create new key -> copy
+4. Free tier: opt into data training to use it
+5. Model: `codestral-latest`
+
+### 5. Cohere (small, optional - 1k calls/mo)
+1. dashboard.cohere.com
+2. Sign up -> API Keys -> copy Trial key
+3. Skip if you want (smallest)
+
+### 6. OpenRouter (aggregator - grab last)
+1. openrouter.ai
+2. Sign in -> Keys -> Create Key
+3. Copy `sk-or-...`
+4. Free 50 req/day (1000 with optional $10 top-up)
+
+### Then
+- Store keys safe (scratch file / password manager) as you go.
+- Install freellmapi, open localhost:3001, paste all keys, copy the unified `freellmapi-...` token.
+- Wire agents: `npx freellmapi setup-aider` / `setup-opencode`.
+
+## RESUME HERE (paused 2026-09-02)
+
+Keyboard/paste issue - session closed mid-setup. On return:
+- Nothing collected yet. Start at step 1 (Groq), then Gemini. That's enough to begin.
+- After 2+ keys: install freellmapi (`curl -fsSL https://freellmapi.co/install.sh | bash`), paste keys at localhost:3001.
+- Then ask me to help wire the gateway into OpenCode/Aider and test a routed prompt.
+- Optional: also re-login bharatcode (`bharatcode auth login`) - its token expired 2026-08-10.
+
 ## Curated lists to bookmark
 
 - github.com/amardeeplakshkar/awesome-free-llm-apis (permanent free tiers, rate limits listed)
