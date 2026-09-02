@@ -100,6 +100,54 @@ The repo found during research is an **AI-agent tooling framework** (agents/skil
 3. TanStack Table with search/filter/paginate on that table.
 4. Deploy the whole thing to Vercel, get a live URL.
 
+## Pre-hackathon checklist (do BEFORE the start hour)
+
+The PS is hidden until start. But everything below is PS-agnostic - prep it now so hour 0 is spent on the problem, not setup.
+
+### Every person (each laptop)
+- [ ] Node 20+, npm, git, Docker Desktop installed and **tested running** (not just installed).
+- [ ] Clone the `starter/` kit, run `npm install && npm run dev`, confirm it loads. Do this on the actual machine you'll bring.
+- [ ] VS Code (or your editor) + the AI tool logged in (Claude Code / OpenCode) and working.
+- [ ] GitHub account ready - Odoo uses it for identity + submission. Add SSH key or token so you can push without fumbling.
+- [ ] Editor extensions: Tailwind IntelliSense, Prisma, ESLint.
+
+### Team (once)
+- [ ] One shared GitHub repo created, all 4 added as collaborators.
+- [ ] Branch protection off / simple - agree one person owns merges to `main`.
+- [ ] Agree roles (see Team roles table). Know who owns backend, frontend, features, deploy.
+- [ ] Vercel account (frontend deploy) + Render/Railway account (backend deploy) - sign up now, verify email now, not at hour 20.
+- [ ] Decide the backend fork (custom Postgres+Prisma vs Supabase) - depends on who's backend-confident.
+
+### Know the tools cold (drill before, not during)
+- [ ] Each person can scaffold a shadcn form (RHF+Zod) from memory.
+- [ ] Backend owner can spin Postgres in Docker + run a Prisma migration in <10 min.
+- [ ] Everyone can deploy the starter to Vercel and get a live URL.
+- [ ] Practice one full mock run on an old PS (StackIt / ReWear) end-to-end. This is the single best prep.
+
+### Logistics (dumb stuff that sinks teams)
+- [ ] Chargers, extension cord, power bank. Venue outlets are scarce.
+- [ ] Phone hotspot as backup - venue wifi WILL choke. This is why the DB runs in Docker locally.
+- [ ] Offline copies: this repo cloned locally, docs bookmarked, npm packages cached (run `npm install` on starter beforehand so node_modules exists).
+- [ ] Snacks, water, whatever keeps 4 humans alive for 24hr.
+
+### Read before you arrive
+- [ ] The full rules on the registration page - PS reveal times, submission format, allowed tech.
+- [ ] This README's "How to win" section - internalize: problem-first, ruthless scope, demo is everything.
+
+## Next deep-dive (saved for later): system design walkthrough
+
+When we resume, go layer by layer - each is a design decision judges probe (recall the Playdoo jury asked about primary keys). For each: explain the tradeoff, build the real slice into the starter (replacing mock), keep the "why" to defend live.
+
+Order:
+1. **Data model** - entities, relations, keys, indexes, constraints. The foundation; the exact thing Odoo judges attacked.
+2. **API contract** - REST design, status codes, error shape, validation on both client and server (why both?).
+3. **Auth + authz** - JWT vs session, token storage, role gates, RLS. The #1 demo-breaker.
+4. **State + caching** - server state vs UI state, TanStack Query, cache invalidation, optimistic updates + rollback.
+5. **Smart feature design** - designing the PS wrinkle (workflow / real-time / ranking) cleanly.
+6. **Deploy + ops** - Docker, env, migrations, seed, the demo-doesn't-crash checklist.
+
+Approach when we resume: go deep on one layer at a time, designed against a realistic PS (StackIt / expense-approval / asset-tracker) so the schema has real wrinkles.
+
 ## How to win (deep research: real winners + AI-era judging)
 
 ### What the 2nd-place team (Playdoo) actually did
