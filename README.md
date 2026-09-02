@@ -100,6 +100,33 @@ The repo found during research is an **AI-agent tooling framework** (agents/skil
 3. TanStack Table with search/filter/paginate on that table.
 4. Deploy the whole thing to Vercel, get a live URL.
 
+## How to win (deep research: real winners + AI-era judging)
+
+### What the 2nd-place team (Playdoo) actually did
+Runner-up out of ~19,000, sports-booking platform. It **validates our locked stack** and shows the bar:
+- Stack: TypeScript + Tailwind + **shadcn/ui** + **Prisma** + **PostgreSQL** (+ Redis, Docker). Same as ours.
+- **3 role-based dashboards** (user / owner / admin) with clean persona separation - this is the pattern to copy.
+- Production polish judges don't expect at a hackathon: Docker multi-stage, observability (Grafana/Prometheus/Loki), Redis session cache.
+- **The jury probed engineering deeply** - a judge gave real DB feedback (change PK to int + hash key, ~9x smaller index, 30-40% faster lookups). Lesson: they WILL quiz your schema/choices. Know your tradeoffs.
+
+### AI-era truth: AI is not a differentiator anymore
+Everyone uses AI. Judges assume it. So what actually separates winners:
+
+1. **Lead with the problem, not the tech.** Get judges feeling the pain before you show the solution. "State what it does before how it works."
+2. **Ruthless scope.** 3 features that work perfectly > 10 half-broken. Feature-stacking reads as *unfinished*, not ambitious. Cut scope before cutting sleep.
+3. **The demo is everything.** ~90 seconds, one clean end-to-end flow. Pre-fill all forms, seed data, mock the slow API, remove every stall point. Judges remember the demo, not the code.
+4. **Presentation > code.** Strong build + rushed pitch LOSES to simpler build + confident, rehearsed walkthrough. Rehearse it, time it.
+5. **Clean UI is the tie-breaker.** Judges review dozens of projects; a polished interface instantly signals professionalism. This is why shadcn matters.
+6. **Be honest in the demo.** Say what works, what doesn't, how it'd extend. Honesty reads as confidence.
+7. **Know your own code.** Odoo = hiring funnel, they quiz live. Every person defends their files.
+
+### The winning shape for us
+- 3 personas (user / admin / one domain role from the PS), each with its own dashboard.
+- 3-4 features done *perfectly*, not 10 half-done.
+- One "smart 20%" feature that's the PS's real point, done well.
+- A rehearsed 2-3 min pitch: problem (15s) -> demo core flow (90s) -> impact + what's next.
+- Clean shadcn UI, consistent theme, seeded demo data.
+
 ## Memory & co-working (the multi-tool problem)
 
 We switch between AI tools (Claude Code, OpenCode, Cursor...) and 4 humans work in parallel. Two failure modes, two fixes. Don't confuse them:
@@ -187,3 +214,7 @@ Keep `README.md`, `AGENTS.md`, and `AIMemory/` committed to git. That's the whol
 - [Best React libraries and tools 2026 (jsdev.space)](https://jsdev.space/react-stack-2026/)
 - [Shadcn UI templates & starter kits 2026 (AdminLTE)](https://adminlte.io/blog/shadcn-ui-templates/)
 - [React + Supabase boilerplates index](https://starterindex.com/react+supabase-boilerplates)
+- [Playdoo - 2nd place Odoo 2025 repo](https://github.com/meetgoti07/playdoo)
+- [How to win a hackathon - notes from the judging table (JetBrains)](https://blog.jetbrains.com/ai/2026/06/how-to-win-a-hackathon-notes-from-the-judging-table/)
+- [AI hackathons: how to prepare, compete, win 2026 (DeepStation)](https://deepstation.ai/blog/ai-hackathons-how-to-prepare-compete-and-win-in-2026)
+- [Smart Expense Mgmt - Odoo x Amalthea IITGN repo](https://github.com/Jay1617/odoo-x-amalthea-iitgn-2025)
