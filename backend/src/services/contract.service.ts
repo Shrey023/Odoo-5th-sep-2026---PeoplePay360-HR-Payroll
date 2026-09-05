@@ -65,7 +65,10 @@ export async function create(input: CreateContractInput) {
 
   const reference = input.reference ?? (await nextReference())
   const { reference: _r, ...rest } = input
-  return prisma.contract.create({ data: { ...rest, reference }, include })
+  return prisma.contract.create({
+    data: { ...rest, reference, wage: String(rest.wage) },
+    include,
+  })
 }
 
 export async function update(id: string, input: UpdateContractInput) {
@@ -79,7 +82,11 @@ export async function update(id: string, input: UpdateContractInput) {
     await assertNoRunningOverlap(current.employeeId, nextStart, nextEnd ?? null, id)
   }
 
-  return prisma.contract.update({ where: { id }, data: input, include })
+  return prisma.contract.update({
+    where: { id },
+    data: { ...input, ...(input.wage != null ? { wage: String(input.wage) } : {}) },
+    include,
+  })
 }
 
 export async function remove(id: string) {
