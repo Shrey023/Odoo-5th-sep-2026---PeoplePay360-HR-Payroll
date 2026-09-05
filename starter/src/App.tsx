@@ -1,3 +1,4 @@
+import React from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from '@/lib/auth'
 import { AppLayout } from '@/components/layout/app-layout'
@@ -31,6 +32,13 @@ function RootRedirect() {
   const { hasRole } = useAuth()
   const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
   return <Navigate to={isHR ? '/dashboard' : '/my-dashboard'} replace />
+}
+
+function EmployeeOnly({ children }: { children: React.ReactNode }) {
+  const { hasRole } = useAuth()
+  const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
+  if (isHR) return <Navigate to="/dashboard" replace />
+  return <>{children}</>
 }
 
 export default function App() {
@@ -74,10 +82,10 @@ export default function App() {
         <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
         <Route path="/salary-rules" element={<SalaryRulesPage />} />
 
-        {/* Employee self-service */}
-        <Route path="/my-dashboard" element={<MyDashboardPage />} />
-        <Route path="/my-payslips" element={<MyPayslipsPage />} />
-        <Route path="/my-profile" element={<MyProfilePage />} />
+        {/* Employee self-service - blocked for HR roles */}
+        <Route path="/my-dashboard" element={<EmployeeOnly><MyDashboardPage /></EmployeeOnly>} />
+        <Route path="/my-payslips" element={<EmployeeOnly><MyPayslipsPage /></EmployeeOnly>} />
+        <Route path="/my-profile" element={<EmployeeOnly><MyProfilePage /></EmployeeOnly>} />
 
         {/* Admin */}
         <Route path="/users" element={<UsersPage />} />
