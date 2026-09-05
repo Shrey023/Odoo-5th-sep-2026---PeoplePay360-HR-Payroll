@@ -1,4 +1,4 @@
-import { Calculator, LayoutDashboard, LogOut, Plane, Receipt, Users } from 'lucide-react'
+import { Calculator, LayoutDashboard, LogOut, Plane, Receipt, ShieldCheck, Users } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
@@ -10,6 +10,7 @@ const nav = [
   { to: '/salary-structures', label: 'Salary Structures', icon: Calculator },
   { to: '/payruns', label: 'Payruns', icon: Receipt },
   { to: '/time-off', label: 'Time Off', icon: Plane },
+  { to: '/users', label: 'Users', icon: ShieldCheck, adminOnly: true },
 ]
 
 function isActive(pathname: string, to: string) {
@@ -17,16 +18,24 @@ function isActive(pathname: string, to: string) {
 }
 
 export function AppLayout() {
-  const { user, logout } = useAuth()
+  const { user, logout, hasRole } = useAuth()
   const { pathname } = useLocation()
   const current = nav.find((n) => isActive(pathname, n.to))
+
+  // Filter navigation items based on role
+  const visibleNav = nav.filter((item) => {
+    if (item.adminOnly) {
+      return hasRole('ADMIN')
+    }
+    return true
+  })
 
   return (
     <div className="flex min-h-svh">
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar p-4 md:flex">
         <div className="mb-6 px-2 text-lg font-semibold">PeoplePay360</div>
         <nav className="flex flex-1 flex-col gap-1">
-          {nav.map(({ to, label, icon: Icon }) => (
+          {visibleNav.map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
