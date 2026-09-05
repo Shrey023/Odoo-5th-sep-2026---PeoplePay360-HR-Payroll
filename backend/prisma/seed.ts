@@ -281,7 +281,7 @@ async function main() {
   }
 
   // Helper: create payrun + payslips for a given month
-  async function createPayrun(name: string, periodStart: Date, periodEnd: Date, workedDays: string) {
+  async function createPayrun(name: string, periodStart: Date, periodEnd: Date, workedDays: string, limit?: number) {
     const pr = await prisma.payrun.create({
       data: {
         name,
@@ -292,7 +292,8 @@ async function main() {
         employeeIds: [],
       },
     })
-    const emps = await prisma.employee.findMany({ where: { status: 'ACTIVE' } })
+    const allEmps = await prisma.employee.findMany({ where: { status: 'ACTIVE' } })
+    const emps = limit ? allEmps.slice(0, limit) : allEmps
     for (const emp of emps) {
       const contract = await prisma.contract.findFirst({ where: { employeeId: emp.id, status: 'RUNNING' } })
       if (!contract) continue
@@ -431,8 +432,8 @@ async function main() {
     })
   }
 
-  await createPayrun('June 2026',  new Date('2026-06-01'), new Date('2026-06-30'), '21')
-  await createPayrun('July 2026',  new Date('2026-07-01'), new Date('2026-07-31'), '23')
+  await createPayrun('June 2026',  new Date('2026-06-01'), new Date('2026-06-30'), '21', 160)
+  await createPayrun('July 2026',  new Date('2026-07-01'), new Date('2026-07-31'), '23', 190)
   await createPayrun('August 2026',new Date('2026-08-01'), new Date('2026-08-31'), '23')
 
   const allCount = createdEmployees.length
