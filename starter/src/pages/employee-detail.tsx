@@ -56,6 +56,11 @@ export function EmployeeDetailPage() {
     queryFn: () => timeOffApi.balances(id),
   })
 
+  const { data: requests = [] } = useQuery({
+    queryKey: ['time-off-requests', id],
+    queryFn: () => timeOffApi.listRequests(id),
+  })
+
   const del = useMutation({
     mutationFn: (contractId: string) => contractsApi.remove(contractId),
     onSuccess: () => {
@@ -208,18 +213,38 @@ export function EmployeeDetailPage() {
         <CardContent className="p-4">
           <h3 className="mb-3 text-sm font-semibold">Leave Balances</h3>
           <div className="grid gap-3 sm:grid-cols-2">
-            {balances.map((b) => (
-              <div key={b.typeId} className="rounded-md border p-3">
-                <div className="text-sm font-medium">{b.typeName}</div>
-                <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
-                  <span>Allocated {b.allocated}</span>
-                  <span>Taken {b.taken}</span>
-                  <span className="font-semibold text-foreground">
-                    Remaining {b.remaining} {b.unit.toLowerCase()}
-                  </span>
+            {balances.map((b) => {
+              const approvedRequests = requests.filter(
+                (r) => r.type.id === b.typeId && r.status === 'APPROVED' && r.type.requiresAllocation
+              )
+              return (
+                <div key={b.typeId} className="rounded-md border p-3">
+                  <div className="text-sm font-medium">{b.typeName}</div>
+                  <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                    <span>Allocated {b.allocated}</span>
+                    <span>Taken {b.taken}</span>
+                    <span className="font-semibold text-foreground">
+                      Remaining {b.remaining} {b.unit.toLowerCase()}
+                    </span>
+                  </div>
+                  {approvedRequests.length > 0 && (
+                    <div className="mt-2 space-y-1">
+                      {approvedRequests.slice(0, 3).map((r) => (
+                        <div key={r.id} className="text-xs text-muted-foreground">
+                          • Consumed {r.duration} {r.type.unit.toLowerCase()} on{' '}
+                          {r.startDate.slice(0, 10)}
+                        </div>
+                      ))}
+                      {approvedRequests.length > 3 && (
+                        <div className="text-xs text-muted-foreground">
+                          + {approvedRequests.length - 3} more
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {balances.length === 0 && (
               <p className="text-sm text-muted-foreground">No leave types configured.</p>
             )}
