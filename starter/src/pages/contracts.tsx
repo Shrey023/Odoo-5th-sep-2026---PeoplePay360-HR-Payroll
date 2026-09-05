@@ -59,6 +59,7 @@ export function ContractsPage() {
                 <TableHead>Start</TableHead>
                 <TableHead>End</TableHead>
                 <TableHead>Wage / Month</TableHead>
+                <TableHead>Working Schedule</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -77,6 +78,9 @@ export function ContractsPage() {
                   <TableCell>{c.startDate.slice(0, 10)}</TableCell>
                   <TableCell>{c.endDate ? c.endDate.slice(0, 10) : '-'}</TableCell>
                   <TableCell>₹{Number(c.wage).toLocaleString()}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {c.schedule?.name ?? '-'}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={statusVariant[c.status]}>{c.status}</Badge>
                   </TableCell>
@@ -84,7 +88,7 @@ export function ContractsPage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="text-sm text-muted-foreground">
                     No contracts found.
                   </TableCell>
                 </TableRow>

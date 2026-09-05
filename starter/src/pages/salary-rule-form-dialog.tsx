@@ -22,6 +22,7 @@ const schema = z
     code: z.string().min(1).regex(/^[A-Z_]+$/, 'Uppercase letters/underscores only'),
     category: z.enum(['BASIC', 'ALLOWANCE', 'GROSS', 'DEDUCTION', 'NET']),
     sequence: z.number().int().nonnegative(),
+    quantity: z.number().positive().optional(),
     computeType: z.enum(['FIXED', 'PERCENTAGE', 'FORMULA']),
     amount: z.string().optional(),
     percent: z.string().optional(),
@@ -50,6 +51,7 @@ const empty: FormValues = {
   code: '',
   category: 'ALLOWANCE',
   sequence: 0,
+  quantity: 1,
   computeType: 'FIXED',
   amount: '',
   percent: '',
@@ -121,7 +123,7 @@ export function RuleFormDialog({ open, onOpenChange, structureId, rule }: Props)
           <DialogTitle>{isEdit ? 'Edit rule' : 'Add rule'}</DialogTitle>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit((v) => save.mutate(v))}>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="code">Code</Label>
               <Input id="code" placeholder="HRA" {...register('code')} />
@@ -130,6 +132,10 @@ export function RuleFormDialog({ open, onOpenChange, structureId, rule }: Props)
             <div className="space-y-2">
               <Label htmlFor="sequence">Sequence</Label>
               <Input id="sequence" type="number" {...register('sequence', { valueAsNumber: true })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quantity">Quantity</Label>
+              <Input id="quantity" type="number" step="0.01" defaultValue={1} {...register('quantity', { valueAsNumber: true })} />
             </div>
           </div>
           <div className="space-y-2">

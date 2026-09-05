@@ -110,6 +110,7 @@ export function AttendancePage() {
                 <TableHead>Check In</TableHead>
                 <TableHead>Check Out</TableHead>
                 <TableHead>Worked Hours</TableHead>
+                <TableHead>Overtime</TableHead>
                 <TableHead>Status</TableHead>
                 {canEdit && <TableHead className="w-12" />}
               </TableRow>
@@ -121,6 +122,9 @@ export function AttendancePage() {
                   <TableCell>{new Date(r.checkIn).toLocaleString()}</TableCell>
                   <TableCell>{r.checkOut ? new Date(r.checkOut).toLocaleString() : '-'}</TableCell>
                   <TableCell>{r.workedHours}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">
+                    {Number(r.workedHours) > 8 ? `${(Number(r.workedHours) - 8).toFixed(2)} hrs` : '0.00'}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={statusVariant[r.status as AttendanceStatus]}>{r.status}</Badge>
                   </TableCell>
@@ -135,7 +139,7 @@ export function AttendancePage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                  <TableCell colSpan={7} className="text-sm text-muted-foreground">
                     No attendance records found.
                   </TableCell>
                 </TableRow>
