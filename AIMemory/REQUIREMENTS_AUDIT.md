@@ -41,35 +41,35 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 16 | List + Form views | TODO | Slice 5 |
-| 17 | List surfaces: name, calendar type, **days/week**, **hours/week**, company, status | PARTIAL | **GAP: days/week + weekly hours not stored/derived.** Note says derive weekly hours from lines; days/week = count of lines. Need computed fields in API response. |
+| 16 | List + Form views | DONE | schedule list/get + upsertLines API (Slice 5); read-only view on employee detail |
+| 17 | List surfaces: name, calendar type, **days/week**, **hours/week**, company, status | DONE | daysPerWeek + weeklyHours now derived on upsertLines (Slice 5) |
 | 18 | Form defines weekly pattern: day, start/end, optional break, hours | DONE | `ScheduleLine` has all |
-| 19 | Weekly hours DERIVED from schedule (not manual) | MISSING | **Must compute sum(line hours) in service.** No field yet - compute on read. |
+| 19 | Weekly hours DERIVED from schedule (not manual) | DONE | schedule.service deriveTotals recomputes on line change (Slice 5); verified 5x7h=35h |
 | 20 | Assignable to Employee/Contract; used by Attendance + Payroll | DONE | FK on both Employee + Contract |
 
 ## Attendance
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 21 | List + Form, linked to employee | TODO | Slice 5 |
-| 22 | Store check-in, check-out, worked hours, status | DONE | all fields |
-| 23 | Accessible globally OR from an employee (filtered) | TODO | endpoint w/ employee filter |
+| 21 | List + Form, linked to employee | DONE | attendance list (employee filter) + shown on employee detail (Slice 5) |
+| 22 | Store check-in, check-out, worked hours, status | DONE | all fields; workedHours derived |
+| 23 | Accessible globally OR from an employee (filtered) | DONE | GET /attendance?employeeId= (Slice 5) |
 | 24 | Worked hours + overtime easy to read | DONE | workedHours; OVERTIME status |
 | 25 | Manual corrections (authorized users) understandable | DONE | `manualEdit` flag; RBAC on edit |
-| 26 | Quick-action popup: Check In / Check Out, elapsed time, green when in | TODO | Frontend widget |
+| 26 | Quick-action popup: Check In / Check Out, elapsed time, green when in | TODO | Frontend widget - Slice 6 polish (nice-to-have) |
 | 27 | Data usable for reporting/dashboard | DONE | queryable |
 
 ## Time Off
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 28 | Requests, Allocations, Time Off Types reached ONLY from Time Off ▼ navbar (no separate page buttons) | TODO | Frontend nav rule |
-| 29 | Types define unit (days/hours), requiresAllocation, approval flow | DONE | `TimeOffType` fields |
-| 30 | Allocations grant balance; require approval before available | DONE | `AllocationStatus` |
-| 31 | Approved requests consume balance ONLY when type requiresAllocation | TODO | leave ledger service, Slice 5 |
-| 32 | If type requiresAllocation, employee must have available allocation before submitting request | TODO | validation, Slice 5 |
+| 28 | Requests, Allocations, Time Off Types reached ONLY from Time Off ▼ navbar (no separate page buttons) | DONE | single Time Off page, 3 tabs Requests/Allocations/Types (Slice 5) |
+| 29 | Types define unit (days/hours), requiresAllocation, approval flow | DONE | `TimeOffType` fields + type dialog |
+| 30 | Allocations grant balance; require approval before available | DONE | `AllocationStatus`; balance counts only APPROVED (Slice 5) |
+| 31 | Approved requests consume balance ONLY when type requiresAllocation | DONE | ledger counts approved requests; guard only checks requiresAllocation types (Slice 5) |
+| 32 | If type requiresAllocation, employee must have available allocation before submitting request | DONE | balance guard on approve -> 422 over-balance (Slice 5). Note: enforced at approval not submission |
 | 33 | Request approval lifecycle status | DONE | `RequestStatus` (DRAFT/TO_APPROVE/APPROVED/REFUSED) |
-| 34 | List shows balance math: Allocated, Taken, Remaining | TODO | computed in API |
+| 34 | List shows balance math: Allocated, Taken, Remaining | DONE | getBalances + Leave Balances card on employee detail (Slice 5) |
 | 35 | Request should show which balance was consumed | TODO | Frontend/API |
 
 ## Salary Structure & Rules
