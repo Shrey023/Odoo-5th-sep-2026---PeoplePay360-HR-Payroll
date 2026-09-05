@@ -81,9 +81,7 @@ export function TimeOffTypesPage() {
                       {t.requiresAllocation ? 'Required' : 'No'}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {t.approvalRequired ? 'Manager' : 'No approval'}
-                  </TableCell>
+                  <TableCell>{t.approvalRequired ? 'Manager' : 'No Approval'}</TableCell>
                   <TableCell>
                     <Badge variant="default">Active</Badge>
                   </TableCell>

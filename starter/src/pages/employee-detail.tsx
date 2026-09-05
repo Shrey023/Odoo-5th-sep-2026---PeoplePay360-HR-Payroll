@@ -76,10 +76,10 @@ export function EmployeeDetailPage() {
   if (!e) return <p className="text-sm text-muted-foreground">Employee not found.</p>
 
   const smartButtons = [
-    { label: 'Contracts', count: e.counts.contracts, icon: FileText },
-    { label: 'Attendance', count: e.counts.attendances, icon: CalendarClock },
-    { label: 'Time Off', count: e.counts.requests, icon: Plane },
-    { label: 'Allocations', count: e.counts.allocations, icon: Wallet },
+    { label: 'Contracts', count: e.counts.contracts, icon: FileText, anchor: 'contracts' },
+    { label: 'Attendance', count: e.counts.attendances, icon: CalendarClock, anchor: 'attendance' },
+    { label: 'Time Off', count: e.counts.requests, icon: Plane, anchor: 'leave-balances' },
+    { label: 'Allocations', count: e.counts.allocations, icon: Wallet, anchor: 'leave-balances' },
   ]
 
   return (
@@ -102,7 +102,11 @@ export function EmployeeDetailPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         {smartButtons.map((b) => (
-          <Card key={b.label}>
+          <Card
+            key={b.label}
+            className="cursor-pointer transition-colors hover:bg-accent"
+            onClick={() => document.getElementById(b.anchor)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
             <CardContent className="flex items-center gap-3 p-4">
               <b.icon className="size-5 text-muted-foreground" />
               <div>
@@ -116,7 +120,7 @@ export function EmployeeDetailPage() {
 
       <EmployeeTabs e={e} />
 
-      <Card>
+      <Card id="contracts">
         <CardContent className="p-4">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold">Contracts</h3>
@@ -199,7 +203,7 @@ export function EmployeeDetailPage() {
 
       <Card>
         <CardContent className="p-4">
-          <h3 className="mb-3 text-sm font-semibold">Leave Balances</h3>
+          <h3 id="leave-balances" className="mb-3 text-sm font-semibold">Leave Balances</h3>
           <div className="grid gap-3 sm:grid-cols-2">
             {balances.map((b) => {
               const approvedRequests = requests.filter(
@@ -242,7 +246,7 @@ export function EmployeeDetailPage() {
 
       <Card>
         <CardContent className="p-4">
-          <h3 className="mb-3 text-sm font-semibold">Attendance</h3>
+          <h3 id="attendance" className="mb-3 text-sm font-semibold">Attendance</h3>
           {attendance.length === 0 ? (
             <p className="text-sm text-muted-foreground">No attendance records.</p>
           ) : (

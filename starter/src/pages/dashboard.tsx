@@ -113,6 +113,11 @@ export function DashboardPage() {
     net: t.net,
   }))
 
+  const payslipStatusData = [
+    { name: 'Paid', value: kpis.paid, color: '#16a34a' },
+    { name: 'Pending', value: kpis.pending, color: '#f59e0b' },
+  ].filter((d) => d.value > 0)
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -122,7 +127,7 @@ export function DashboardPage() {
             Live payroll and HR overview across the company.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <select
             value={departmentId}
             onChange={(ev) => setDepartmentId(ev.target.value)}
@@ -130,9 +135,7 @@ export function DashboardPage() {
           >
             <option value="">All Departments</option>
             {departments?.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
+              <option key={d.id} value={d.id}>{d.name}</option>
             ))}
           </select>
           <select
@@ -141,10 +144,11 @@ export function DashboardPage() {
             className="h-9 rounded-md border bg-background px-3 text-sm"
           >
             {TYPE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
+              <option key={o.value} value={o.value}>{o.label}</option>
             ))}
+          </select>
+          <select className="h-9 rounded-md border bg-background px-3 text-sm" defaultValue="oxp">
+            <option value="oxp">OXP Technologies</option>
           </select>
         </div>
       </div>
@@ -181,7 +185,7 @@ export function DashboardPage() {
       </div>
 
       {/* Charts row */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Salary Cost by Department</CardTitle>
@@ -228,6 +232,37 @@ export function DashboardPage() {
                 </LineChart>
               </ResponsiveContainer>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Payslip Status &amp; Payroll Alerts</CardTitle>
+            <p className="text-xs text-muted-foreground">Source: Payrun + Payslip validation</p>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4 flex gap-4 text-sm">
+              <div className="flex items-center gap-2">
+                <span className="size-3 rounded-full bg-green-600 inline-block" />
+                <span className="text-muted-foreground">Paid</span>
+                <span className="font-semibold">{kpis.paid}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="size-3 rounded-full bg-amber-500 inline-block" />
+                <span className="text-muted-foreground">Pending</span>
+                <span className="font-semibold">{kpis.pending}</span>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Current alerts</p>
+              {warnings.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No alerts.</p>
+              ) : (
+                warnings.map((w) => (
+                  <div key={w.type} className="text-xs text-amber-700">• {w.message}</div>
+                ))
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
