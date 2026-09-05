@@ -112,7 +112,7 @@ async function main() {
     ],
   })
 
-  // 15 employees across 3 departments. Neha has no bank (drives warning demo).
+  // 15 employees across 3 departments.
   const employeesData = [
     // Finance (5)
     { name: 'Aarav Mehta',    email: 'aarav@oxp.com',    job: 'Payroll Specialist',  dept: finance,     wage: 85000,  bank: 'HDFC-0001', userId: aaravUser.id, type: 'FULL_TIME', sched: schedule },
@@ -122,7 +122,7 @@ async function main() {
     { name: 'Karan Joshi',    email: 'karan@oxp.com',    job: 'Financial Controller',dept: finance,     wage: 130000, bank: 'AXIS-0013', userId: null, type: 'FULL_TIME', sched: schedule },
     // HR (5)
     { name: 'Sara Khan',      email: 'sara@oxp.com',     job: 'HR Officer',          dept: hr,          wage: 95000,  bank: 'ICICI-0002', userId: null, type: 'FULL_TIME', sched: schedule },
-    { name: 'Neha Patel',     email: 'neha@oxp.com',     job: 'Recruiter',           dept: hr,          wage: 60000,  bank: null,         userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Neha Patel',     email: 'neha@oxp.com',     job: 'Recruiter',           dept: hr,          wage: 60000,  bank: 'KOTAK-0021', userId: null, type: 'FULL_TIME', sched: schedule },
     { name: 'Amit Singh',     email: 'amit@oxp.com',     job: 'HR Business Partner', dept: hr,          wage: 88000,  bank: 'HDFC-0014', userId: null, type: 'FULL_TIME', sched: schedule },
     { name: 'Pooja Iyer',     email: 'pooja@oxp.com',    job: 'L&D Specialist',      dept: hr,          wage: 72000,  bank: 'SBI-0015',  userId: null, type: 'FULL_TIME', sched: flexSchedule },
     { name: 'Rahul Gupta',    email: 'rahulg@oxp.com',   job: 'Talent Acquisition',  dept: hr,          wage: 65000,  bank: 'ICICI-0016', userId: null, type: 'INTERN', sched: flexSchedule },
@@ -324,6 +324,113 @@ async function main() {
     return pr
   }
 
+  // 200 bulk employees across all 3 departments with realistic Indian names
+  const firstNames = [
+    'Arjun','Kavya','Raj','Sneha','Vivek','Nisha','Sanjay','Deepa','Arun','Lakshmi',
+    'Suresh','Preethi','Manoj','Anjali','Ravi','Swati','Ganesh','Rekha','Vijay','Usha',
+    'Nikhil','Pallavi','Harish','Shweta','Ashok','Jyoti','Mohan','Preeti','Sunil','Geeta',
+    'Ajay','Madhuri','Ramesh','Sunita','Prakash','Kavitha','Gopal','Asha','Anil','Radha',
+    'Dinesh','Mala','Suresh','Chitra','Rajesh','Meena','Umesh','Latha','Naresh','Sarala',
+    'Abhishek','Rashmi','Vinod','Nandini','Santosh','Revathi','Mahesh','Sudha','Sudhir','Gayatri',
+    'Prasad','Saranya','Girish','Shobha','Venkat','Hema','Srinivas','Bhavana','Raghu','Vanitha',
+    'Karthik','Divyashree','Madan','Sowmya','Satish','Archana','Naveen','Priyadarshini','Lokesh','Sindhu',
+    'Shiva','Mythili','Balu','Nirmala','Kishore','Pavithra','Madhu','Jayanthi','Subramaniam','Vijayalakshmi',
+    'Anand','Vasantha','Chandru','Mangala','Senthil','Bhagyalakshmi','Murali','Saraswathi','Selvam','Kamala',
+  ]
+  const lastNames = [
+    'Kumar','Sharma','Patel','Singh','Reddy','Nair','Iyer','Pillai','Rao','Gupta',
+    'Joshi','Menon','Verma','Mehta','Shah','Desai','Bhat','Hegde','Naik','Patil',
+    'Gowda','Shetty','Kamath','Pai','Alva','Bangera','Shenoy','Kudva','Mallya','Prabhu',
+    'Ghosh','Bose','Roy','Das','Sen','Mukherjee','Chatterjee','Banerjee','Dutta','Mitra',
+    'Mishra','Tripathi','Pandey','Tiwari','Shukla','Dwivedi','Chaturvedi','Bajpai','Srivastava','Agarwal',
+  ]
+  const jobsByDept: Record<string, string[]> = {
+    finance: ['Junior Analyst','Senior Analyst','Finance Executive','Accounts Officer','Budget Analyst','Audit Associate','Treasury Analyst','Cost Accountant','Finance Associate','Compliance Officer'],
+    hr: ['HR Executive','Recruitment Specialist','HR Coordinator','Payroll Assistant','Training Coordinator','HR Analyst','Talent Manager','HR Associate','Onboarding Specialist','HR Intern'],
+    engineering: ['Software Engineer','Junior Developer','Tech Lead','System Analyst','Database Admin','Network Engineer','Security Engineer','Cloud Engineer','ML Engineer','Full Stack Developer'],
+  }
+  const banks = ['HDFC','ICICI','SBI','AXIS','KOTAK','BOB','PNB','CANARA','UNION','FEDERAL']
+  const types = ['FULL_TIME','FULL_TIME','FULL_TIME','FULL_TIME','CONTRACTOR','INTERN'] as const
+  const depts = [
+    { dept: finance,     key: 'finance',      wageMin: 45000, wageMax: 95000 },
+    { dept: finance,     key: 'finance',      wageMin: 45000, wageMax: 95000 },
+    { dept: hr,          key: 'hr',           wageMin: 40000, wageMax: 80000 },
+    { dept: hr,          key: 'hr',           wageMin: 40000, wageMax: 80000 },
+    { dept: engineering, key: 'engineering',  wageMin: 55000, wageMax: 130000 },
+    { dept: engineering, key: 'engineering',  wageMin: 55000, wageMax: 130000 },
+    { dept: engineering, key: 'engineering',  wageMin: 55000, wageMax: 130000 },
+  ]
+
+  const usedEmails = new Set(employeesData.map(e => e.email))
+  let bulkSeq = contractSeq
+
+  for (let i = 0; i < 200; i++) {
+    const fn = firstNames[i % firstNames.length]
+    const ln = lastNames[Math.floor(i / firstNames.length) % lastNames.length]
+    const name = `${fn} ${ln}`
+    let email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i}@oxp.com`
+    if (usedEmails.has(email)) email = `${fn.toLowerCase()}.${ln.toLowerCase()}${i}x@oxp.com`
+    usedEmails.add(email)
+
+    const deptEntry = depts[i % depts.length]
+    const jobs = jobsByDept[deptEntry.key]
+    const job = jobs[i % jobs.length]
+    const wage = deptEntry.wageMin + Math.floor(((i * 1337) % (deptEntry.wageMax - deptEntry.wageMin)))
+    const bank = `${banks[i % banks.length]}-${String(1000 + i).padStart(4, '0')}`
+    const empType = types[i % types.length]
+    const sched = i % 5 === 0 ? flexSchedule : schedule
+
+    const emp = await prisma.employee.create({
+      data: {
+        name,
+        workEmail: email,
+        jobPosition: job,
+        departmentId: deptEntry.dept.id,
+        companyId: company.id,
+        scheduleId: sched.id,
+        bankAccount: bank,
+        employeeType: empType,
+      },
+    })
+    const seq = String(bulkSeq++).padStart(3, '0')
+    await prisma.contract.create({
+      data: {
+        reference: `CON/2026/${seq}`,
+        employeeId: emp.id,
+        jobPosition: job,
+        employeeType: empType,
+        departmentId: deptEntry.dept.id,
+        startDate: new Date('2026-01-01'),
+        endDate: new Date('2026-12-31'),
+        wage: String(wage),
+        status: 'RUNNING',
+        structureId: structure.id,
+        scheduleId: sched.id,
+      },
+    })
+    createdEmployees.push({ id: emp.id, name, email, wage })
+
+    // Allocations for bulk employees
+    await prisma.allocation.createMany({
+      data: [
+        { employeeId: emp.id, typeId: annual.id, amount: '21', validFrom: new Date('2026-01-01'), validTo: new Date('2026-12-31'), status: 'APPROVED' },
+        { employeeId: emp.id, typeId: sick.id,   amount: '10', validFrom: new Date('2026-01-01'), validTo: new Date('2026-12-31'), status: 'APPROVED' },
+      ],
+    })
+
+    // 4-5 attendance records per bulk employee
+    const pickDays = [...attendanceDays].sort(() => 0.5 - Math.random()).slice(0, 4 + (i % 2))
+    await prisma.attendance.createMany({
+      data: pickDays.map((d) => ({
+        employeeId: emp.id,
+        checkIn: new Date(`${d.date}T${d.checkIn}:00`),
+        checkOut: d.checkOut ? new Date(`${d.date}T${d.checkOut}:00`) : null,
+        workedHours: d.hours,
+        status: d.status as any,
+      })),
+    })
+  }
+
   await createPayrun('June 2026',  new Date('2026-06-01'), new Date('2026-06-30'), '21')
   await createPayrun('July 2026',  new Date('2026-07-01'), new Date('2026-07-31'), '23')
   await createPayrun('August 2026',new Date('2026-08-01'), new Date('2026-08-31'), '23')
@@ -331,8 +438,8 @@ async function main() {
   const allCount = createdEmployees.length
   console.log('Seed complete:')
   console.log(`  users: ${users.length} (password: password123)`)
-  console.log(`  employees: ${allCount} | contracts: ${allCount} | payruns: 3 (Jun/Jul/Aug PAID)`)
-  console.log(`  allocations: ${allCount * 2 + 1} | requests: ${requestsData.length} | attendance: ~${allCount * 6}`)
+  console.log(`  employees: ${allCount} (15 named + 200 bulk) | contracts: ${allCount} | payruns: 3 (Jun/Jul/Aug PAID)`)
+  console.log(`  allocations: ~${allCount * 2} | requests: ${requestsData.length} | attendance: ~${allCount * 5}`)
 }
 
 main()
