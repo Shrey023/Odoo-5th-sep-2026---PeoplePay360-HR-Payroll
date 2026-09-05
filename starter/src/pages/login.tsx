@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
-  password: z.string().min(6, 'Min 6 characters'),
+  password: z.string().min(1, 'Password required'),
 })
 type Values = z.infer<typeof schema>
 
@@ -25,9 +25,13 @@ export function LoginPage() {
   } = useForm<Values>({ resolver: zodResolver(schema) })
 
   async function onSubmit(values: Values) {
-    await login(values.email, values.password)
-    toast.success('Logged in')
-    navigate('/')
+    try {
+      await login(values.email, values.password)
+      toast.success('Logged in')
+      navigate('/')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Login failed')
+    }
   }
 
   return (
@@ -40,7 +44,7 @@ export function LoginPage() {
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="admin@demo.com" {...register('email')} />
+              <Input id="email" type="email" placeholder="payroll@oxp.com" {...register('email')} />
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
@@ -58,6 +62,9 @@ export function LoginPage() {
               <Link to="/register" className="underline">
                 Register
               </Link>
+            </p>
+            <p className="rounded-md bg-muted p-2 text-center text-xs text-muted-foreground">
+              Demo: payroll@oxp.com / password123
             </p>
           </form>
         </CardContent>

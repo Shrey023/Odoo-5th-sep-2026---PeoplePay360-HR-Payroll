@@ -1,71 +1,40 @@
 import { useQuery } from '@tanstack/react-query'
-import { Boxes, CheckCircle2, PauseCircle, Layers } from 'lucide-react'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { api } from '@/lib/api'
+import { Building2, Users } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { employeesApi } from '@/lib/employees.api'
 
 export function DashboardPage() {
-  const { data: items = [] } = useQuery({ queryKey: ['items'], queryFn: api.list })
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees', ''],
+    queryFn: () => employeesApi.list(),
+  })
 
-  const total = items.length
-  const active = items.filter((i) => i.status === 'active').length
-  const inactive = total - active
-  const categories = new Set(items.map((i) => i.category)).size
+  const active = employees.filter((e) => e.status === 'ACTIVE').length
+  const departments = new Set(employees.map((e) => e.department?.name).filter(Boolean)).size
 
-  const byCategory = Object.entries(
-    items.reduce<Record<string, number>>((acc, i) => {
-      acc[i.category] = (acc[i.category] ?? 0) + 1
-      return acc
-    }, {}),
-  ).map(([category, count]) => ({ category, count }))
-
-  const stats = [
-    { label: 'Total items', value: total, icon: Boxes },
-    { label: 'Active', value: active, icon: CheckCircle2 },
-    { label: 'Inactive', value: inactive, icon: PauseCircle },
-    { label: 'Categories', value: categories, icon: Layers },
+  const cards = [
+    { label: 'Active Employees', value: active, icon: Users },
+    { label: 'Departments', value: departments, icon: Building2 },
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ label, value, icon: Icon }) => (
-          <Card key={label}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-              <Icon className="size-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{value}</div>
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {cards.map((c) => (
+          <Card key={c.label}>
+            <CardContent className="flex items-center gap-3 p-4">
+              <c.icon className="size-5 text-muted-foreground" />
+              <div>
+                <div className="text-2xl font-semibold">{c.value}</div>
+                <div className="text-xs text-muted-foreground">{c.label}</div>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Items by category</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={byCategory}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis dataKey="category" fontSize={12} />
-              <YAxis allowDecimals={false} fontSize={12} />
-              <Tooltip />
-              <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground">
+        Full payroll dashboard (KPIs, charts, warnings) lands in a later slice.
+      </p>
     </div>
   )
 }

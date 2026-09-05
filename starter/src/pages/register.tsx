@@ -26,9 +26,13 @@ export function RegisterPage() {
   } = useForm<Values>({ resolver: zodResolver(schema) })
 
   async function onSubmit(values: Values) {
-    await registerUser(values.name, values.email, values.password)
-    toast.success('Account created')
-    navigate('/')
+    try {
+      await registerUser(values.name, values.email, values.password)
+      toast.success('Account created')
+      navigate('/')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Registration failed')
+    }
   }
 
   return (

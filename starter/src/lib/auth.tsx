@@ -1,65 +1,81 @@
-import { createContext, type ReactNode, useContext, useState } from 'react'
+import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+import { getToken, http, setToken } from './http'
 
-/**
- * Mock auth. Swap the login/register/logout bodies for real API calls
- * (Supabase auth or your Express+JWT endpoint) on event day. The rest of
- * the app only depends on this hook's shape, so nothing else changes.
- */
+export type Role =
+  | 'EMPLOYEE'
+  | 'HR_MANAGER'
+  | 'HR_PAYROLL_USER'
+  | 'HR_PAYROLL_MANAGER'
+  | 'ADMIN'
 
-export type Role = 'user' | 'admin'
 export interface User {
   id: string
   name: string
   email: string
-  role: Role
+  roles: Role[]
+}
+
+interface AuthResult {
+  token: string
+  user: User
 }
 
 interface AuthState {
   user: User | null
+  loading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
+  hasRole: (...roles: Role[]) => boolean
 }
 
 const AuthContext = createContext<AuthState | null>(null)
-const STORAGE_KEY = 'app.user'
-
-function readStored(): User | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as User) : null
-  } catch {
-    return null
-  }
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(readStored)
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
 
-  function persist(u: User | null) {
-    setUser(u)
-    if (u) localStorage.setItem(STORAGE_KEY, JSON.stringify(u))
-    else localStorage.removeItem(STORAGE_KEY)
+  useEffect(() => {
+    if (!getToken()) {
+      setLoading(false)
+      return
+    }
+    http<User>('/auth/me')
+      .then(setUser)
+      .catch(() => setToken(null))
+      .finally(() => setLoading(false))
+  }, [])
+
+  async function login(email: string, password: string) {
+    const res = await http<AuthResult>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    })
+    setToken(res.token)
+    setUser(res.user)
   }
 
-  async function login(email: string, _password: string) {
-    // TODO: replace with real API call.
-    const role: Role = email.startsWith('admin') ? 'admin' : 'user'
-    persist({ id: '1', name: email.split('@')[0], email, role })
-  }
-
-  async function register(name: string, email: string, _password: string) {
-    // TODO: replace with real API call.
-    persist({ id: '1', name, email, role: 'user' })
+  async function register(name: string, email: string, password: string) {
+    const res = await http<AuthResult>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    })
+    setToken(res.token)
+    setUser(res.user)
   }
 
   function logout() {
-    persist(null)
+    setToken(null)
+    setUser(null)
+  }
+
+  function hasRole(...roles: Role[]) {
+    return !!user && user.roles.some((r) => roles.includes(r))
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, hasRole }}>
       {children}
     </AuthContext.Provider>
   )
@@ -72,8 +88,12 @@ export function useAuth() {
 }
 
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
   const location = useLocation()
+  if (loading) return <div className="flex min-h-svh items-center justify-center">Loading...</div>
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />
   return <>{children}</>
 }
+
+export const HR_ROLES: Role[] = ['HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'ADMIN']
+export const PAYROLL_CONFIG_ROLES: Role[] = ['HR_PAYROLL_MANAGER', 'ADMIN']
