@@ -55,7 +55,10 @@ export async function createAllocation(input: CreateAllocationInput) {
   if (!employee) throw new HttpError(404, 'Employee not found')
   if (!type) throw new HttpError(404, 'Time off type not found')
   if (input.validTo < input.validFrom) throw new HttpError(400, 'Valid-to must be on or after valid-from')
-  return prisma.allocation.create({ data: input, include: allocationInclude })
+  return prisma.allocation.create({
+    data: { ...input, amount: String(input.amount) },
+    include: allocationInclude,
+  })
 }
 
 export async function setAllocationStatus(id: string, status: 'APPROVED' | 'REFUSED') {
