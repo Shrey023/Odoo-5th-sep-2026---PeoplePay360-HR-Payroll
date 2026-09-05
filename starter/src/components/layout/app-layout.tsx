@@ -42,6 +42,7 @@ function isNavGroup(e: NavEntry): e is NavGroup {
 
 const nav: NavEntry[] = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, hrOnly: true },
+  { to: '/my-dashboard', label: 'My Dashboard', icon: LayoutDashboard },
   { to: '/my-payslips', label: 'My Payslips', icon: Receipt },
   { to: '/my-profile', label: 'My Profile', icon: Users },
   {

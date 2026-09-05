@@ -171,7 +171,12 @@ export function MyProfilePage() {
                     <TableCell>{new Date(a.checkIn).toLocaleString()}</TableCell>
                     <TableCell>{a.checkOut ? new Date(a.checkOut).toLocaleString() : '-'}</TableCell>
                     <TableCell>{a.workedHours}</TableCell>
-                    <TableCell><Badge variant="secondary">{a.status}</Badge></TableCell>
+                    <TableCell>
+                      {(() => {
+                        const c: Record<string,string> = { PRESENT:'bg-green-100 text-green-700', LATE:'bg-amber-100 text-amber-700', ABSENT:'bg-red-100 text-red-700', OVERTIME:'bg-blue-100 text-blue-700' }
+                        return <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${c[a.status] ?? 'bg-gray-100 text-gray-700'}`}>{a.status}</span>
+                      })()}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

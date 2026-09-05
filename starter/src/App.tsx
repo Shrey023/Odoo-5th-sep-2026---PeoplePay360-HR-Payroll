@@ -20,6 +20,7 @@ import { SalaryStructuresPage } from '@/pages/salary-structures'
 import { TimeOffAllocationsPage } from '@/pages/time-off-allocations'
 import { TimeOffRequestsPage } from '@/pages/time-off-requests'
 import { TimeOffTypesPage } from '@/pages/time-off-types'
+import { MyDashboardPage } from '@/pages/my-dashboard'
 import { MyPayslipsPage } from '@/pages/my-payslips'
 import { MyProfilePage } from '@/pages/my-profile'
 import { UsersPage } from '@/pages/users'
@@ -29,7 +30,7 @@ import { WorkingSchedulesPage } from '@/pages/working-schedules'
 function RootRedirect() {
   const { hasRole } = useAuth()
   const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
-  return <Navigate to={isHR ? '/' : '/my-payslips'} replace />
+  return <Navigate to={isHR ? '/' : '/my-dashboard'} replace />
 }
 
 export default function App() {
@@ -74,6 +75,7 @@ export default function App() {
         <Route path="/salary-rules" element={<SalaryRulesPage />} />
 
         {/* Employee self-service */}
+        <Route path="/my-dashboard" element={<MyDashboardPage />} />
         <Route path="/my-payslips" element={<MyPayslipsPage />} />
         <Route path="/my-profile" element={<MyProfilePage />} />
 
