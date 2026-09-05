@@ -32,6 +32,7 @@ export interface EmployeeInput {
   status?: Employee['status']
   bankAccount?: string | null
   departmentId?: string | null
+  managerId?: string | null
 }
 
 export const employeesApi = {

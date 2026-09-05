@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import { Input } from '@/components/ui/input'
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,6 +29,7 @@ export function PayrunsPage() {
   const { hasRole } = useAuth()
   const canEdit = hasRole(...PAYROLL_WRITE_ROLES)
   const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
 
   const { data: payruns = [] } = useQuery({
     queryKey: ['payruns'],
@@ -44,6 +46,13 @@ export function PayrunsPage() {
           </Button>
         )}
       </div>
+
+      <Input
+        placeholder="Search payruns…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="max-w-xs"
+      />
 
       <Card>
         <CardContent className="p-4">
@@ -62,7 +71,7 @@ export function PayrunsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payruns.map((p) => (
+                {payruns.filter((p) => !search || p.name.toLowerCase().includes(search.toLowerCase())).map((p) => (
                   <TableRow key={p.id} className="cursor-pointer">
                     <TableCell className="font-medium">
                       <Link to={`/payruns/${p.id}`} className="hover:underline">

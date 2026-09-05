@@ -37,12 +37,18 @@ export function EmployeesPage() {
 
   const [view, setView] = useState<'kanban' | 'list'>('kanban')
   const [search, setSearch] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
   const [editing, setEditing] = useState<Employee | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
+  const { data: departments = [] } = useQuery({
+    queryKey: ['departments'],
+    queryFn: () => import('@/lib/http').then(({ http }) => http<{ id: string; name: string }[]>('/departments')),
+  })
+
   const { data: employees = [], isLoading } = useQuery({
-    queryKey: ['employees', search],
-    queryFn: () => employeesApi.list({ search }),
+    queryKey: ['employees', search, departmentId],
+    queryFn: () => employeesApi.list({ search, departmentId: departmentId || undefined }),
   })
 
   const remove = useMutation({
@@ -75,6 +81,16 @@ export function EmployeesPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+        <select
+          className="h-9 rounded-md border bg-background px-3 text-sm"
+          value={departmentId}
+          onChange={(e) => setDepartmentId(e.target.value)}
+        >
+          <option value="">All Departments</option>
+          {departments.map((d) => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
         <div className="flex rounded-md border p-0.5">
           <Button
             variant={view === 'kanban' ? 'secondary' : 'ghost'}

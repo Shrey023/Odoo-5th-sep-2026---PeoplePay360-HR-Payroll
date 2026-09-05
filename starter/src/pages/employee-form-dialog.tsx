@@ -25,6 +25,7 @@ const schema = z.object({
   status: z.enum(['ACTIVE', 'INACTIVE']),
   bankAccount: z.string().optional(),
   departmentId: z.string().optional(),
+  managerId: z.string().optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -42,6 +43,7 @@ const empty: FormValues = {
   status: 'ACTIVE',
   bankAccount: '',
   departmentId: '',
+  managerId: '',
 }
 
 export function EmployeeFormDialog({ open, onOpenChange, employee }: Props) {
@@ -51,6 +53,11 @@ export function EmployeeFormDialog({ open, onOpenChange, employee }: Props) {
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: () => http<{ id: string; name: string }[]>('/departments'),
+  })
+
+  const { data: allEmployees = [] } = useQuery({
+    queryKey: ['employees', ''],
+    queryFn: () => employeesApi.list(),
   })
 
   const {
@@ -72,6 +79,7 @@ export function EmployeeFormDialog({ open, onOpenChange, employee }: Props) {
               status: employee.status,
               bankAccount: employee.bankAccount ?? '',
               departmentId: employee.department?.id ?? '',
+              managerId: employee.manager?.id ?? '',
             }
           : empty,
       )
@@ -84,6 +92,7 @@ export function EmployeeFormDialog({ open, onOpenChange, employee }: Props) {
         ...values,
         bankAccount: values.bankAccount || null,
         departmentId: values.departmentId || null,
+        managerId: values.managerId || null,
       }
       return isEdit ? employeesApi.update(employee!.id, payload) : employeesApi.create(payload)
     },
@@ -151,6 +160,21 @@ export function EmployeeFormDialog({ open, onOpenChange, employee }: Props) {
                 <option value="INTERN">Intern</option>
               </select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="managerId">Manager</Label>
+            <select
+              id="managerId"
+              className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+              {...register('managerId')}
+            >
+              <option value="">None</option>
+              {allEmployees
+                .filter((e) => !employee || e.id !== employee.id)
+                .map((e) => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
