@@ -56,7 +56,7 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 | 23 | Accessible globally OR from an employee (filtered) | DONE | GET /attendance?employeeId= (Slice 5) |
 | 24 | Worked hours + overtime easy to read | DONE | workedHours; OVERTIME status |
 | 25 | Manual corrections (authorized users) understandable | DONE | `manualEdit` flag; RBAC on edit |
-| 26 | Quick-action popup: Check In / Check Out, elapsed time, green when in | TODO | Frontend widget - Slice 6 polish (nice-to-have) |
+| 26 | Quick-action popup: Check In / Check Out, elapsed time, green when in | SKIP | Nice-to-have; attendance records viewable/creatable via API. Cut to protect demo polish (Slice 6) |
 | 27 | Data usable for reporting/dashboard | DONE | queryable |
 
 ## Time Off
@@ -106,15 +106,15 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 56 | Lives in Payroll module, aggregates across Employee/Dept, Contract, Attendance, Time Off, Payroll | TODO | Slice 6 |
-| 57 | Uses REAL data, not hardcoded | TODO | live queries |
-| 58 | KPIs: total net salary, # payslips, paid/pending | TODO | Slice 6 |
-| 59 | Department overview: headcount / salary by dept | TODO | Slice 6 |
-| 60 | Time Off overview: approved days, pending requests, remaining balances by type | TODO | Slice 6 |
-| 61 | Attendance overview: present/absent/late, overtime, missing check-outs, coverage, manual edits | PARTIAL | data exists; missing-checkout = checkOut null; coverage/edits computable. Build Slice 6. |
-| 62 | >=2 visual summaries (bar/line/stacked/table) | TODO | Recharts, Slice 6 |
-| 63 | Filters: Period, Department, Employee Type, Company affect data | PARTIAL | Company is a single constant now (not an entity). Period/Dept/Type filterable. **Company filter = weak** (no Company model). |
-| 64 | Warnings/attention items: duplicate payslips, missing bank, contracts expiring, drafts not validated | TODO | Slice 6 |
+| 56 | Lives in Payroll module, aggregates across Employee/Dept, Contract, Attendance, Time Off, Payroll | DONE | `GET /dashboard` aggregates all modules in one Promise.all (Slice 6) |
+| 57 | Uses REAL data, not hardcoded | DONE | all live queries, derived on each request; verified totalNet 91440 (Slice 6) |
+| 58 | KPIs: total net salary, # payslips, paid/pending | DONE | KPI cards: active emps, total net, paid/pending, approved leave days (Slice 6) |
+| 59 | Department overview: headcount / salary by dept | DONE | byDepartment (headcount + net) as cards + bar chart (Slice 6) |
+| 60 | Time Off overview: approved days, pending requests, remaining balances by type | PARTIAL | dashboard shows approved days + pending requests; per-type remaining shown on employee detail (Slice 5). Aggregate per-type on dashboard not added |
+| 61 | Attendance overview: present/absent/late, overtime, missing check-outs, coverage, manual edits | DONE | byStatus tally + missingCheckouts + pie chart (Slice 6) |
+| 62 | >=2 visual summaries (bar/line/stacked/table) | DONE | bar (net by dept) + pie (attendance) + dept table (Slice 6) |
+| 63 | Filters: Period, Department, Employee Type, Company affect data | PARTIAL | employeeType filter live in UI; departmentId accepted by backend (no UI dropdown yet); period/company weaker. Type verified INTERN=2 (Slice 6) |
+| 64 | Warnings/attention items: duplicate payslips, missing bank, contracts expiring, drafts not validated | DONE | warnings panel: missing bank, no running contract, contracts expiring 30d, unvalidated payruns (Slice 6). Duplicates prevented at compute (unique+idempotent) |
 
 ---
 
