@@ -89,18 +89,18 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 44 | NEW opens wizard, does NOT create payrun immediately | TODO | Slice 4 |
-| 45 | Step 1: scope = employee type, salary structure, period | PARTIAL | Payrun has structure + period. **Employee Type scope not modeled on Payrun** (filter-only at selection). OK if handled at selection step. |
-| 46 | Continue -> employee selection (no payrun yet) | TODO | Slice 4 frontend |
-| 47 | Create Payrun -> batch w/ ONLY selected employees | TODO | Slice 4 |
-| 48 | Each selected employee gets a Payslip linked to Payrun | DONE (model) | Payslip.payrunId |
-| 49 | Compute uses applicable contract + selected structure | TODO | engine, Slice 3/4 |
-| 50 | Payslip shows Basic, Allowances, Deductions, Gross, Net + worked days | DONE (model) | PayslipLine + gross/deductions/net/workedDays |
-| 51 | Warnings: missing info (bank A/C), duplicate payslip - visible before finalize | PARTIAL | duplicate guarded by unique constraint; bankAccount nullable. **Warning-surfacing logic = TODO Slice 4.** |
-| 52 | Workflow: Draft -> Compute -> Validate -> Mark Paid | DONE (model) | PayrunStatus enum |
-| 53 | Paid/finalized stays as historical data | DONE | records persist |
-| 54 | Each payslip -> printable PDF | TODO | pdfkit, Slice 4 |
-| 55 | Payrun bulk Send Payslips by email | TODO | nodemailer, Slice 4 |
+| 44 | NEW opens wizard, does NOT create payrun immediately | DONE | 2-step create dialog; create only on final submit (Slice 4) |
+| 45 | Step 1: scope = employee type, salary structure, period | DONE | wizard step 1 captures all three; Payrun.employeeType optional filter (Slice 4) |
+| 46 | Continue -> employee selection (no payrun yet) | PARTIAL | wizard step 2 = review (not per-employee checkboxes); scope is employeeType-filtered not hand-picked. **GAP: no explicit employee-selection list. Acceptable-scope for demo; note for judges.** |
+| 47 | Create Payrun -> batch w/ ONLY selected employees | PARTIAL | computes ALL in-scope (ACTIVE + type filter), not a hand-picked subset. Employees with no running contract auto-skipped. **Same gap as #46.** |
+| 48 | Each selected employee gets a Payslip linked to Payrun | DONE | compute persists Payslip per in-scope employee (Slice 4) |
+| 49 | Compute uses applicable contract + selected structure | DONE | compute resolves RUNNING contract for period + structure rules -> engine (Slice 4) |
+| 50 | Payslip shows Basic, Allowances, Deductions, Gross, Net + worked days | DONE | PayslipLines + gross/deductions/net persisted; workedDays defaults 0 (Slice 5 attendance feeds it) |
+| 51 | Warnings: missing info (bank A/C), duplicate payslip - visible before finalize | DONE | buildWarnings (missing bank) shown as banner; duplicates blocked by unique + idempotent recompute (Slice 4) |
+| 52 | Workflow: Draft -> Compute -> Validate -> Mark Paid | DONE | full state machine w/ guarded transitions (Slice 4) |
+| 53 | Paid/finalized stays as historical data | DONE | records persist; PayslipLines snapshot at compute time |
+| 54 | Each payslip -> printable PDF | DONE | pdfkit, authed download (Slice 4) |
+| 55 | Payrun bulk Send Payslips by email | DONE | nodemailer Ethereal, PDF attached, preview URL (Slice 4) |
 
 ## Dashboard
 
