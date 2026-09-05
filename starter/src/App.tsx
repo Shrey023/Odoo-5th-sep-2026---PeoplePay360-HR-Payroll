@@ -45,8 +45,8 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/home" element={<RootRedirect />} />
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
 
         {/* Employees group */}
         <Route path="/employees" element={<EmployeesPage />} />
