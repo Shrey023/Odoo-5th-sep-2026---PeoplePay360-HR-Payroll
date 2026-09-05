@@ -17,6 +17,7 @@ import {
 import { useAuth, HR_ROLES } from '@/lib/auth'
 import { type Contract, contractsApi } from '@/lib/contracts.api'
 import { employeesApi } from '@/lib/employees.api'
+import { attendanceApi, timeOffApi } from '@/lib/timeoff.api'
 import { ContractFormDialog } from './contract-form-dialog'
 import { PayslipPreviewDialog } from './payslip-preview-dialog'
 
@@ -43,6 +44,16 @@ export function EmployeeDetailPage() {
   const { data: contracts = [] } = useQuery({
     queryKey: ['contracts', id],
     queryFn: () => contractsApi.listForEmployee(id),
+  })
+
+  const { data: attendance = [] } = useQuery({
+    queryKey: ['attendance', id],
+    queryFn: () => attendanceApi.list(id),
+  })
+
+  const { data: balances = [] } = useQuery({
+    queryKey: ['balances', id],
+    queryFn: () => timeOffApi.balances(id),
   })
 
   const del = useMutation({
@@ -184,6 +195,63 @@ export function EmployeeDetailPage() {
                           </Button>
                         )}
                       </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="mb-3 text-sm font-semibold">Leave Balances</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {balances.map((b) => (
+              <div key={b.typeId} className="rounded-md border p-3">
+                <div className="text-sm font-medium">{b.typeName}</div>
+                <div className="mt-1 flex gap-4 text-xs text-muted-foreground">
+                  <span>Allocated {b.allocated}</span>
+                  <span>Taken {b.taken}</span>
+                  <span className="font-semibold text-foreground">
+                    Remaining {b.remaining} {b.unit.toLowerCase()}
+                  </span>
+                </div>
+              </div>
+            ))}
+            {balances.length === 0 && (
+              <p className="text-sm text-muted-foreground">No leave types configured.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="mb-3 text-sm font-semibold">Attendance</h3>
+          {attendance.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No attendance records.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Check In</TableHead>
+                  <TableHead>Check Out</TableHead>
+                  <TableHead>Hours</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {attendance.map((a) => (
+                  <TableRow key={a.id}>
+                    <TableCell>{new Date(a.checkIn).toLocaleString()}</TableCell>
+                    <TableCell>
+                      {a.checkOut ? new Date(a.checkOut).toLocaleString() : '-'}
+                    </TableCell>
+                    <TableCell>{a.workedHours}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{a.status}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}

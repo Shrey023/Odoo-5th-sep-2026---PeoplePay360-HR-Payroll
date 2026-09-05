@@ -10,6 +10,7 @@ import { PayrunsPage } from '@/pages/payruns'
 import { RegisterPage } from '@/pages/register'
 import { SalaryStructureDetailPage } from '@/pages/salary-structure-detail'
 import { SalaryStructuresPage } from '@/pages/salary-structures'
+import { TimeOffPage } from '@/pages/time-off'
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
         <Route path="/payruns" element={<PayrunsPage />} />
         <Route path="/payruns/:id" element={<PayrunDetailPage />} />
+        <Route path="/time-off" element={<TimeOffPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
