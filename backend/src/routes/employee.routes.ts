@@ -9,6 +9,7 @@ export const employeeRouter = Router()
 
 employeeRouter.use(authenticate)
 
+employeeRouter.get('/me', asyncHandler(employeeController.getMe))
 employeeRouter.get('/', asyncHandler(employeeController.list))
 employeeRouter.get('/:id', asyncHandler(employeeController.getOne))
 employeeRouter.post('/', authorize(...HR_ROLES), asyncHandler(employeeController.create))

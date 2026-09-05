@@ -21,6 +21,7 @@ import { TimeOffAllocationsPage } from '@/pages/time-off-allocations'
 import { TimeOffRequestsPage } from '@/pages/time-off-requests'
 import { TimeOffTypesPage } from '@/pages/time-off-types'
 import { MyPayslipsPage } from '@/pages/my-payslips'
+import { MyProfilePage } from '@/pages/my-profile'
 import { UsersPage } from '@/pages/users'
 import { WorkingScheduleDetailPage } from '@/pages/working-schedule-detail'
 import { WorkingSchedulesPage } from '@/pages/working-schedules'
@@ -74,7 +75,7 @@ export default function App() {
 
         {/* Employee self-service */}
         <Route path="/my-payslips" element={<MyPayslipsPage />} />
-        <Route path="/my-profile" element={<Navigate to="/employees" replace />} />
+        <Route path="/my-profile" element={<MyProfilePage />} />
 
         {/* Admin */}
         <Route path="/users" element={<UsersPage />} />

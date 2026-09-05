@@ -86,3 +86,19 @@ export async function listAllPayslips(_req: Request, res: Response) {
   })
   ok(res, { message: 'Payslips', data })
 }
+
+export async function listMyPayslips(req: Request, res: Response) {
+  const userId = req.user!.sub
+  const emp = await prisma.employee.findFirst({ where: { userId } })
+  if (!emp) { ok(res, { message: 'No employee linked', data: [] }); return }
+  const data = await prisma.payslip.findMany({
+    where: { employeeId: emp.id },
+    include: {
+      employee: { select: { id: true, name: true, workEmail: true } },
+      payrun: { select: { id: true, name: true, periodStart: true, periodEnd: true } },
+      lines: { orderBy: { sequence: 'asc' } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+  ok(res, { message: 'My payslips', data })
+}
