@@ -71,6 +71,14 @@ export function DashboardPage() {
 
   const { kpis, byDepartment, timeOff, attendance, trend, warnings } = data
 
+  const trendPct = (() => {
+    if (trend.length < 2) return null
+    const prev = trend[trend.length - 2].net
+    const curr = trend[trend.length - 1].net
+    if (prev === 0) return null
+    return (((curr - prev) / prev) * 100).toFixed(1)
+  })()
+
   const kpiCards = [
     {
       label: 'Total Net Salary Paid',
@@ -117,14 +125,6 @@ export function DashboardPage() {
     { name: 'Paid', value: kpis.paid, color: '#16a34a' },
     { name: 'Pending', value: kpis.pending, color: '#f59e0b' },
   ].filter((d) => d.value > 0)
-
-  const trendPct = (() => {
-    if (trend.length < 2) return null
-    const prev = trend[trend.length - 2].net
-    const curr = trend[trend.length - 1].net
-    if (prev === 0) return null
-    return (((curr - prev) / prev) * 100).toFixed(1)
-  })()
 
   return (
     <div className="space-y-6">
