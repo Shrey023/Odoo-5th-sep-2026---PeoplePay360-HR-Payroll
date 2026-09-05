@@ -186,6 +186,84 @@ async function main() {
     ],
   })
 
+  // Demo payrun: August 2026, all 4 employees, status PAID so dashboard shows real numbers.
+  const rules = await prisma.salaryRule.findMany({
+    where: { structureId: structure.id },
+    orderBy: { sequence: 'asc' },
+  })
+
+  const payrun = await prisma.payrun.create({
+    data: {
+      name: 'August 2026',
+      structureId: structure.id,
+      periodStart: new Date('2026-08-01'),
+      periodEnd: new Date('2026-08-31'),
+      status: 'PAID',
+      employeeIds: [],
+    },
+  })
+
+  const allEmployees = await prisma.employee.findMany({ where: { status: 'ACTIVE' } })
+
+  for (const emp of allEmployees) {
+    const contract = await prisma.contract.findFirst({
+      where: { employeeId: emp.id, status: 'RUNNING' },
+    })
+    if (!contract) continue
+
+    const wage = Number(contract.wage)
+    const cats: Record<string, number> = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 }
+    const lines: { ruleCode: string; ruleName: string; category: string; sequence: number; amount: number }[] = []
+
+    for (const rule of rules) {
+      let amount = 0
+      if (rule.computeType === 'FIXED') {
+        amount = Number(rule.amount ?? 0)
+      } else if (rule.computeType === 'PERCENTAGE') {
+        const base = rule.percentBase === 'CONTRACT_WAGE' ? wage : (cats[rule.percentBase ?? ''] ?? 0)
+        amount = (base * Number(rule.percent ?? 0)) / 100
+      } else if (rule.computeType === 'FORMULA' && rule.expression) {
+        const fn = new Function('categories', `"use strict"; return (${rule.expression});`)
+        amount = fn(cats)
+      }
+      amount = Math.round((amount + Number.EPSILON) * 100) / 100
+      if (rule.category === 'BASIC' || rule.category === 'ALLOWANCE' || rule.category === 'DEDUCTION') {
+        cats[rule.category] += amount
+      } else {
+        cats[rule.category] = amount
+      }
+      lines.push({ ruleCode: rule.code, ruleName: rule.name, category: rule.category, sequence: rule.sequence, amount })
+    }
+
+    const gross = Math.round((cats.GROSS || cats.BASIC + cats.ALLOWANCE) * 100) / 100
+    const deductions = Math.round(cats.DEDUCTION * 100) / 100
+    const net = Math.round((cats.NET || gross - deductions) * 100) / 100
+
+    await prisma.payslip.create({
+      data: {
+        payrunId: payrun.id,
+        employeeId: emp.id,
+        contractId: contract.id,
+        periodStart: payrun.periodStart,
+        periodEnd: payrun.periodEnd,
+        gross,
+        deductions,
+        net,
+        status: 'PAID',
+        workedDays: '23',
+        lines: {
+          create: lines.map((l) => ({
+            ruleCode: l.ruleCode,
+            ruleName: l.ruleName,
+            category: l.category as any,
+            sequence: l.sequence,
+            amount: l.amount,
+          })),
+        },
+      },
+    })
+  }
+
   console.log('Seed complete:')
   console.log(`  users: ${users.length} (login password: password123)`)
   console.log(`  company: ${company.name}, employees: ${employeesData.length}, contracts: ${employeesData.length}, rules: 7`)
