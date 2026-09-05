@@ -11,6 +11,7 @@ import { leaveRouter } from './leave.routes.js'
 import { payrunRouter } from './payrun.routes.js'
 import { salaryStructureRouter } from './salaryStructure.routes.js'
 import { scheduleRouter } from './schedule.routes.js'
+import { userRouter } from './user.routes.js'
 
 export const apiRouter = Router()
 
@@ -25,3 +26,4 @@ apiRouter.use('/time-off', leaveRouter)
 apiRouter.use('/schedules', scheduleRouter)
 apiRouter.use('/departments', departmentRouter)
 apiRouter.use('/dashboard', dashboardRouter)
+apiRouter.use('/users', userRouter)

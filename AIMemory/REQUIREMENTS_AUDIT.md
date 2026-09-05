@@ -12,9 +12,9 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 | # | Requirement (source) | Status | Notes |
 |---|---|---|---|
 | 1 | User accounts separate from Employee, but linked to an employee | DONE | `Employee.userId` optional 1:1 to `User` |
-| 2 | Accounts created by Admin; assign one or more roles | PARTIAL | Single `role` per user, not multi-role. PS says "one or more roles". **GAP: only 1 role.** Decide: keep single (simpler) or array. |
+| 2 | Accounts created by Admin; assign one or more roles | DONE | Admin-only POST /users (PR #9); multi-role via roles UserRole[]; users.tsx + role dialog. Verified create w/ 2 roles, no passwordHash leak |
 | 3 | Roles control module/record/action access after login | TODO | RBAC middleware built; per-module enforcement lands per slice |
-| 4 | Users must not assign/elevate own roles | TODO | Enforce in user-mgmt endpoint (Admin only) |
+| 4 | Users must not assign/elevate own roles | DONE | PATCH /users/:id/roles rejects when userId===requesterId -> 403 (PR #9); verified. Non-admin -> 403 |
 | 5 | Password reset/SSO = optional enhancements | SKIP | Out of scope, fine |
 
 ## Employee (master record)
