@@ -2,17 +2,25 @@ import nodemailer, { type Transporter } from 'nodemailer'
 
 let transporter: Transporter | null = null
 
-// Dev mailer: an Ethereal test account. Nothing leaves the sandbox; each send
-// returns a preview URL you can open to see the message. No real SMTP needed.
-async function getTransporter(): Promise<Transporter> {
+function getTransporter(): Transporter {
   if (transporter) return transporter
-  const account = await nodemailer.createTestAccount()
-  transporter = nodemailer.createTransport({
-    host: account.smtp.host,
-    port: account.smtp.port,
-    secure: account.smtp.secure,
-    auth: { user: account.user, pass: account.pass },
-  })
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+  if (user && pass) {
+    transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false,
+      auth: { user, pass },
+    })
+  } else {
+    // Ethereal fallback for local dev without credentials
+    transporter = nodemailer.createTransport({
+      host: 'smtp.ethereal.email',
+      port: 587,
+      auth: { user: 'dev@ethereal.email', pass: 'dev' },
+    })
+  }
   return transporter
 }
 
@@ -27,13 +35,15 @@ export async function sendMail(opts: {
   text: string
   attachments?: Attachment[]
 }): Promise<{ to: string; previewUrl: string | false }> {
-  const tx = await getTransporter()
+  const tx = getTransporter()
   const info = await tx.sendMail({
-    from: 'PeoplePay360 <payroll@peoplepay360.local>',
+    from: `PeoplePay360 <${process.env.SMTP_USER ?? 'payroll@peoplepay360.local'}>`,
     to: opts.to,
     subject: opts.subject,
     text: opts.text,
     attachments: opts.attachments,
   })
-  return { to: opts.to, previewUrl: nodemailer.getTestMessageUrl(info) }
+  const previewUrl = nodemailer.getTestMessageUrl(info)
+  if (previewUrl) console.log('Mail preview:', previewUrl)
+  return { to: opts.to, previewUrl }
 }
