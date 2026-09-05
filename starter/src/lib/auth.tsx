@@ -97,3 +97,4 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 
 export const HR_ROLES: Role[] = ['HR_MANAGER', 'HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'ADMIN']
 export const PAYROLL_CONFIG_ROLES: Role[] = ['HR_PAYROLL_MANAGER', 'ADMIN']
+export const PAYROLL_WRITE_ROLES: Role[] = ['HR_PAYROLL_USER', 'HR_PAYROLL_MANAGER', 'ADMIN']

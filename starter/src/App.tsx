@@ -5,6 +5,8 @@ import { DashboardPage } from '@/pages/dashboard'
 import { EmployeeDetailPage } from '@/pages/employee-detail'
 import { EmployeesPage } from '@/pages/employees'
 import { LoginPage } from '@/pages/login'
+import { PayrunDetailPage } from '@/pages/payrun-detail'
+import { PayrunsPage } from '@/pages/payruns'
 import { RegisterPage } from '@/pages/register'
 import { SalaryStructureDetailPage } from '@/pages/salary-structure-detail'
 import { SalaryStructuresPage } from '@/pages/salary-structures'
@@ -26,6 +28,8 @@ export default function App() {
         <Route path="/employees/:id" element={<EmployeeDetailPage />} />
         <Route path="/salary-structures" element={<SalaryStructuresPage />} />
         <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
+        <Route path="/payruns" element={<PayrunsPage />} />
+        <Route path="/payruns/:id" element={<PayrunDetailPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

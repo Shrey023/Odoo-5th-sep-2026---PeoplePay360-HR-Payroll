@@ -1,4 +1,4 @@
-import { Calculator, LayoutDashboard, LogOut, Users } from 'lucide-react'
+import { Calculator, LayoutDashboard, LogOut, Receipt, Users } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
@@ -8,6 +8,7 @@ const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/employees', label: 'Employees', icon: Users },
   { to: '/salary-structures', label: 'Salary Structures', icon: Calculator },
+  { to: '/payruns', label: 'Payruns', icon: Receipt },
 ]
 
 export function AppLayout() {

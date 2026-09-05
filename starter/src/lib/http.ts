@@ -33,3 +33,19 @@ export async function http<T>(path: string, options: RequestInit = {}): Promise<
   }
   return (body as { data: T }).data
 }
+
+// Fetch a file (with auth) and trigger a browser download.
+export async function downloadFile(path: string, fileName: string) {
+  const token = getToken()
+  const res = await fetch(`${BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) throw new Error(`Download failed (${res.status})`)
+  const blob = await res.blob()
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  a.click()
+  URL.revokeObjectURL(url)
+}
