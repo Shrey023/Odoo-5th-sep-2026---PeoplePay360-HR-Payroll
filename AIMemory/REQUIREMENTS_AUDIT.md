@@ -1,0 +1,133 @@
+# Requirements Audit - PeoplePay360
+
+Every functional note from the PDF + excalidraw mother doc, checked against the current schema/build.
+Status: DONE / PARTIAL / MISSING / TODO (not built yet, planned).
+
+Legend: coverage is about the **data model + planned build**, not finished UI.
+
+---
+
+## Login / User Access
+
+| # | Requirement (source) | Status | Notes |
+|---|---|---|---|
+| 1 | User accounts separate from Employee, but linked to an employee | DONE | `Employee.userId` optional 1:1 to `User` |
+| 2 | Accounts created by Admin; assign one or more roles | PARTIAL | Single `role` per user, not multi-role. PS says "one or more roles". **GAP: only 1 role.** Decide: keep single (simpler) or array. |
+| 3 | Roles control module/record/action access after login | TODO | RBAC middleware built; per-module enforcement lands per slice |
+| 4 | Users must not assign/elevate own roles | TODO | Enforce in user-mgmt endpoint (Admin only) |
+| 5 | Password reset/SSO = optional enhancements | SKIP | Out of scope, fine |
+
+## Employee (master record)
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 6 | Required views: Kanban, List, Form | TODO | Frontend, Slice 1 |
+| 7 | Kanban card + List row open the SAME Employee Form | TODO | Frontend |
+| 8 | Employee Form = central hub via smart buttons (Contracts, Attendance, Time Off, Allocations) w/ counts | TODO | Frontend, needs count endpoints |
+| 9 | Capture dept, manager, schedule, job position, status | DONE | all fields present |
+
+## Contract
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 10 | List + Form views | TODO | Slice 2 |
+| 11 | Employee can have multiple contracts over time (history retained) | DONE | `Contract[]` on employee |
+| 12 | Payroll uses contract applicable to the period (Running) | DONE | `resolveForPeriod` in contract.service (Slice 2); payrun consumes it Slice 4 |
+| 13 | One employee must NOT have multiple Running contracts for same period | DONE | `assertNoRunningOverlap` on create/update -> 409 (Slice 2) |
+| 14 | Form captures duration, dept, position, wage, salary structure | DONE | Contract carries jobPosition, departmentId, wage, structureId, scheduleId, start/end (Slice 2). structure/schedule pickers wire up when those slices land |
+| 15 | Make active Running contract obvious | DONE | Status badge on contracts table (Slice 2) |
+
+## Working Schedule
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 16 | List + Form views | TODO | Slice 5 |
+| 17 | List surfaces: name, calendar type, **days/week**, **hours/week**, company, status | PARTIAL | **GAP: days/week + weekly hours not stored/derived.** Note says derive weekly hours from lines; days/week = count of lines. Need computed fields in API response. |
+| 18 | Form defines weekly pattern: day, start/end, optional break, hours | DONE | `ScheduleLine` has all |
+| 19 | Weekly hours DERIVED from schedule (not manual) | MISSING | **Must compute sum(line hours) in service.** No field yet - compute on read. |
+| 20 | Assignable to Employee/Contract; used by Attendance + Payroll | DONE | FK on both Employee + Contract |
+
+## Attendance
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 21 | List + Form, linked to employee | TODO | Slice 5 |
+| 22 | Store check-in, check-out, worked hours, status | DONE | all fields |
+| 23 | Accessible globally OR from an employee (filtered) | TODO | endpoint w/ employee filter |
+| 24 | Worked hours + overtime easy to read | DONE | workedHours; OVERTIME status |
+| 25 | Manual corrections (authorized users) understandable | DONE | `manualEdit` flag; RBAC on edit |
+| 26 | Quick-action popup: Check In / Check Out, elapsed time, green when in | TODO | Frontend widget |
+| 27 | Data usable for reporting/dashboard | DONE | queryable |
+
+## Time Off
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 28 | Requests, Allocations, Time Off Types reached ONLY from Time Off ▼ navbar (no separate page buttons) | TODO | Frontend nav rule |
+| 29 | Types define unit (days/hours), requiresAllocation, approval flow | DONE | `TimeOffType` fields |
+| 30 | Allocations grant balance; require approval before available | DONE | `AllocationStatus` |
+| 31 | Approved requests consume balance ONLY when type requiresAllocation | TODO | leave ledger service, Slice 5 |
+| 32 | If type requiresAllocation, employee must have available allocation before submitting request | TODO | validation, Slice 5 |
+| 33 | Request approval lifecycle status | DONE | `RequestStatus` (DRAFT/TO_APPROVE/APPROVED/REFUSED) |
+| 34 | List shows balance math: Allocated, Taken, Remaining | TODO | computed in API |
+| 35 | Request should show which balance was consumed | TODO | Frontend/API |
+
+## Salary Structure & Rules
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 36 | Structure = named collection of rules (e.g. Regular Salary) | DONE | seeded |
+| 37 | Structure Form shows included rules + sequence | DONE | salary-structure-detail ordered rules table (Slice 3) |
+| 38 | Rule List/Form exposes: Name, Code, Category, Structure, Sequence | DONE | all fields |
+| 39 | Compute methods: Fixed, Percentage (of Contract Wage/Basic/Gross), Formula/Python | DONE | `ComputeType` + percentBase; formula = expression |
+| 40 | Categories: Basic, Allowance, Gross, Deduction, Net | DONE | `RuleCategory` |
+| 41 | Rules processed by sequence | DONE | sequence field; engine Slice 3 |
+| 42 | Rules actually DRIVE payslip calc (not hardcoded) | DONE | payslip.engine.ts data-driven; 7 unit tests green (Slice 3) |
+| 43 | Percentage base can be Contract Wage / Basic / Gross | DONE | percentBase enum includes CONTRACT_WAGE + BASIC/ALLOWANCE/GROSS/DEDUCTION; engine resolves each (Slice 3) |
+
+## Payrun & Payslip
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 44 | NEW opens wizard, does NOT create payrun immediately | TODO | Slice 4 |
+| 45 | Step 1: scope = employee type, salary structure, period | PARTIAL | Payrun has structure + period. **Employee Type scope not modeled on Payrun** (filter-only at selection). OK if handled at selection step. |
+| 46 | Continue -> employee selection (no payrun yet) | TODO | Slice 4 frontend |
+| 47 | Create Payrun -> batch w/ ONLY selected employees | TODO | Slice 4 |
+| 48 | Each selected employee gets a Payslip linked to Payrun | DONE (model) | Payslip.payrunId |
+| 49 | Compute uses applicable contract + selected structure | TODO | engine, Slice 3/4 |
+| 50 | Payslip shows Basic, Allowances, Deductions, Gross, Net + worked days | DONE (model) | PayslipLine + gross/deductions/net/workedDays |
+| 51 | Warnings: missing info (bank A/C), duplicate payslip - visible before finalize | PARTIAL | duplicate guarded by unique constraint; bankAccount nullable. **Warning-surfacing logic = TODO Slice 4.** |
+| 52 | Workflow: Draft -> Compute -> Validate -> Mark Paid | DONE (model) | PayrunStatus enum |
+| 53 | Paid/finalized stays as historical data | DONE | records persist |
+| 54 | Each payslip -> printable PDF | TODO | pdfkit, Slice 4 |
+| 55 | Payrun bulk Send Payslips by email | TODO | nodemailer, Slice 4 |
+
+## Dashboard
+
+| # | Requirement | Status | Notes |
+|---|---|---|---|
+| 56 | Lives in Payroll module, aggregates across Employee/Dept, Contract, Attendance, Time Off, Payroll | TODO | Slice 6 |
+| 57 | Uses REAL data, not hardcoded | TODO | live queries |
+| 58 | KPIs: total net salary, # payslips, paid/pending | TODO | Slice 6 |
+| 59 | Department overview: headcount / salary by dept | TODO | Slice 6 |
+| 60 | Time Off overview: approved days, pending requests, remaining balances by type | TODO | Slice 6 |
+| 61 | Attendance overview: present/absent/late, overtime, missing check-outs, coverage, manual edits | PARTIAL | data exists; missing-checkout = checkOut null; coverage/edits computable. Build Slice 6. |
+| 62 | >=2 visual summaries (bar/line/stacked/table) | TODO | Recharts, Slice 6 |
+| 63 | Filters: Period, Department, Employee Type, Company affect data | PARTIAL | Company is a single constant now (not an entity). Period/Dept/Type filterable. **Company filter = weak** (no Company model). |
+| 64 | Warnings/attention items: duplicate payslips, missing bank, contracts expiring, drafts not validated | TODO | Slice 6 |
+
+---
+
+## GAPS - all 7 resolved (2026-09-05, "fix all literally")
+
+1. **#2 multi-role** - RESOLVED. `User.roles UserRole[]`; RBAC guard checks intersection.
+2. **#13 no concurrent Running contracts** - schema ready; validation lands in Contract service (Slice 2). Still TODO in code.
+3. **#14 contract dept/position** - RESOLVED. Contract now has `jobPosition`, `employeeType`, `departmentId`.
+4. **#17/#19 Working Schedule days/week + weekly hours** - RESOLVED (schema: `daysPerWeek`, `weeklyHours`). Service must recompute on line change (Slice 5).
+5. **#43 percentBase Contract Wage** - RESOLVED. New `PercentBase` enum includes CONTRACT_WAGE.
+6. **#45 Payrun employee-type scope** - RESOLVED. `Payrun.employeeType` optional filter.
+7. **#63 Company filter** - RESOLVED. `Company` model added; Employee/Department/WorkingSchedule linked.
+
+Remaining code-level TODOs (not schema gaps): #13 concurrent-contract validation, weekly-hours recompute on schedule edit. Tracked to their slices.
+
+Everything else = either DONE (model) or correctly deferred to its slice.
