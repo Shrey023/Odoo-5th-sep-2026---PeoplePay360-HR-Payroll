@@ -136,7 +136,16 @@ export function TimeOffPage() {
                 {requests.map((r) => (
                   <TableRow key={r.id}>
                     <TableCell className="font-medium">{r.employee.name}</TableCell>
-                    <TableCell>{r.type.name}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <span>{r.type.name}</span>
+                        {r.status === 'APPROVED' && r.type.requiresAllocation && (
+                          <span className="text-xs text-muted-foreground">
+                            Consumed {r.duration} {r.type.unit.toLowerCase()} from {r.type.name}
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {r.startDate.slice(0, 10)} - {r.endDate.slice(0, 10)}
                     </TableCell>
