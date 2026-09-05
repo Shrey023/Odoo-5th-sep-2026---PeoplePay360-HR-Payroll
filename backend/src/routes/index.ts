@@ -11,11 +11,13 @@ import { leaveRouter } from './leave.routes.js'
 import { payrunRouter } from './payrun.routes.js'
 import { salaryStructureRouter } from './salaryStructure.routes.js'
 import { scheduleRouter } from './schedule.routes.js'
+import { userRouter } from './user.routes.js'
 
 export const apiRouter = Router()
 
 apiRouter.use('/health', healthRouter)
 apiRouter.use('/auth', authRouter)
+apiRouter.use('/users', userRouter)
 apiRouter.use('/employees', employeeRouter)
 apiRouter.use('/contracts', contractRouter)
 apiRouter.use('/salary-structures', salaryStructureRouter)
