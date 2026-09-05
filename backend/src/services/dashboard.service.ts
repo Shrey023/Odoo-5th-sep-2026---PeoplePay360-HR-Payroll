@@ -17,7 +17,7 @@ export async function getDashboard(filters: DashboardFilters) {
     ...(filters.employeeType ? { employeeType: filters.employeeType } : {}),
   }
 
-  const [employees, departments, payslips, contracts, requests, attendance] = await Promise.all([
+  const [employees, departments, payslips, contracts, requests, allocations, attendance, payruns] = await Promise.all([
     prisma.employee.findMany({
       where: employeeWhere,
       select: { id: true, status: true, bankAccount: true, departmentId: true },
@@ -33,11 +33,21 @@ export async function getDashboard(filters: DashboardFilters) {
     }),
     prisma.timeOffRequest.findMany({
       where: { employee: employeeWhere },
-      select: { status: true, duration: true },
+      select: { status: true, duration: true, typeId: true, type: { select: { id: true, name: true } } },
+    }),
+    prisma.allocation.findMany({
+      where: { employee: employeeWhere, status: 'APPROVED' },
+      select: { amount: true, typeId: true, type: { select: { id: true, name: true } } },
     }),
     prisma.attendance.findMany({
       where: { employee: employeeWhere },
       select: { status: true, checkOut: true },
+    }),
+    prisma.payrun.findMany({
+      where: { status: { in: ['VALIDATED', 'PAID'] } },
+      select: { name: true, periodStart: true, periodEnd: true, payslips: { where: { employee: employeeWhere }, select: { net: true } } },
+      orderBy: { periodStart: 'asc' },
+      take: 6,
     }),
   ])
 
@@ -68,6 +78,32 @@ export async function getDashboard(filters: DashboardFilters) {
   const approvedRequests = requests.filter((r) => r.status === 'APPROVED')
   const pendingRequests = requests.filter((r) => r.status === 'TO_APPROVE').length
   const approvedDays = approvedRequests.reduce((sum, r) => sum + toNumber(r.duration), 0)
+
+  // Per-type time-off: allocated, taken, remaining
+  const typeMap = new Map<string, { id: string; name: string; allocated: number; taken: number }>()
+  for (const a of allocations) {
+    const key = a.typeId
+    const row = typeMap.get(key) ?? { id: a.type.id, name: a.type.name, allocated: 0, taken: 0 }
+    row.allocated += toNumber(a.amount)
+    typeMap.set(key, row)
+  }
+  for (const r of approvedRequests) {
+    const key = r.typeId
+    const row = typeMap.get(key)
+    if (row) row.taken += toNumber(r.duration)
+  }
+  const byType = [...typeMap.values()].map((t) => ({
+    name: t.name,
+    approvedDays: t.taken,
+    pending: requests.filter((r) => r.typeId === t.id && r.status === 'TO_APPROVE').length,
+    remainingBalance: Math.max(0, t.allocated - t.taken),
+  }))
+
+  // Monthly salary trend (last 6 validated/paid payruns)
+  const trend = payruns.map((pr) => ({
+    month: pr.periodStart.toISOString().slice(0, 7),
+    net: pr.payslips.reduce((sum, p) => sum + toNumber(p.net), 0),
+  }))
 
   const attendanceByStatus = { PRESENT: 0, LATE: 0, ABSENT: 0, OVERTIME: 0 }
   let missingCheckouts = 0
@@ -116,6 +152,12 @@ export async function getDashboard(filters: DashboardFilters) {
     })
   }
 
+  const avgSalary = activeEmployees > 0 ? Math.round(totalNet / activeEmployees) : 0
+  const totalAttendance = Object.values(attendanceByStatus).reduce((s, v) => s + v, 0)
+  const attendanceHealth = totalAttendance > 0
+    ? Math.round(((attendanceByStatus.PRESENT + attendanceByStatus.OVERTIME) / totalAttendance) * 100)
+    : 0
+
   return {
     kpis: {
       activeEmployees,
@@ -123,16 +165,20 @@ export async function getDashboard(filters: DashboardFilters) {
       payslips: payslips.length,
       paid: paidCount,
       pending: pendingCount,
+      avgSalary,
+      attendanceHealth,
     },
     byDepartment: [...byDept.values()].sort((a, b) => b.headcount - a.headcount),
     timeOff: {
       approvedDays,
       pendingRequests,
+      byType,
     },
     attendance: {
       byStatus: attendanceByStatus,
       missingCheckouts,
     },
+    trend,
     warnings,
   }
 }

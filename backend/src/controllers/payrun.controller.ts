@@ -2,6 +2,7 @@ import type { Request, Response } from 'express'
 
 import * as payrunService from '../services/payrun.service.js'
 import { getPayslipPdf } from '../services/payslip.pdf.js'
+import { prisma } from '../config/prisma.js'
 import { ok } from '../utils/apiResponse.js'
 import { createPayrunSchema, updatePayrunSchema } from '../validators/payrun.validator.js'
 
@@ -57,4 +58,15 @@ export async function downloadPayslip(req: Request, res: Response) {
   res.setHeader('Content-Type', 'application/pdf')
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`)
   res.send(buffer)
+}
+
+export async function listAllPayslips(_req: Request, res: Response) {
+  const data = await prisma.payslip.findMany({
+    include: {
+      employee: { select: { id: true, name: true } },
+      payrun: { select: { id: true, name: true, periodStart: true, periodEnd: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+  ok(res, { message: 'Payslips', data })
 }

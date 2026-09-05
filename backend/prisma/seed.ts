@@ -73,31 +73,8 @@ async function main() {
     ],
   })
 
-  // Generate 200 employee dummy data
-  const firstNames = ['Aarav', 'Vivaan', 'Aditya', 'Vihaan', 'Arjun', 'Sai', 'Arnav', 'Ayaan', 'Krishna', 'Ishaan', 'Shaurya', 'Atharva', 'Advaith', 'Aarush', 'Kabir', 'Rudra', 'Rohan', 'Aadhya', 'Diya', 'Ananya', 'Pari', 'Aarohi', 'Sara', 'Aanya', 'Navya', 'Angel', 'Pari', 'Myra', 'Anika', 'Saanvi', 'Prisha', 'Avni', 'Shanaya', 'Anaya', 'Kiara', 'Ishika', 'Neha', 'Priya', 'Kavya', 'Riya', 'Pooja', 'Sneha', 'Anjali', 'Divya', 'Simran', 'Tanvi', 'Shruti', 'Megha', 'Swati', 'Rakesh', 'Suresh', 'Ramesh', 'Dinesh', 'Mahesh', 'Rajesh', 'Mukesh', 'Naresh', 'Hitesh', 'Nilesh', 'Amit', 'Sumit', 'Rohit', 'Mohit', 'Lalit', 'Ajit', 'Karan', 'Varun', 'Tarun', 'Arun', 'Vikram', 'Ashok', 'Vinod', 'Manoj', 'Sanjay', 'Vijay', 'Ajay', 'Deepak', 'Praveen', 'Sandeep']
-  const lastNames = ['Sharma', 'Verma', 'Patel', 'Kumar', 'Singh', 'Gupta', 'Mehta', 'Agarwal', 'Reddy', 'Rao', 'Khan', 'Joshi', 'Desai', 'Nair', 'Iyer', 'Menon', 'Bhat', 'Kulkarni', 'Jain', 'Shetty', 'Pandey', 'Mishra', 'Tiwari', 'Dubey', 'Saxena', 'Kapoor', 'Malhotra', 'Chopra', 'Arora', 'Bhatia', 'Sethi', 'Khanna', 'Bansal', 'Goyal', 'Mittal', 'Agrawal', 'Singhal', 'Garg', 'Jindal', 'Shah']
-  const jobPositions = [
-    { title: 'Software Engineer', dept: 'engineering', wage: 65000 },
-    { title: 'Senior Developer', dept: 'engineering', wage: 85000 },
-    { title: 'Frontend Developer', dept: 'engineering', wage: 60000 },
-    { title: 'Backend Developer', dept: 'engineering', wage: 70000 },
-    { title: 'Full Stack Developer', dept: 'engineering', wage: 75000 },
-    { title: 'DevOps Engineer', dept: 'engineering', wage: 80000 },
-    { title: 'QA Engineer', dept: 'engineering', wage: 55000 },
-    { title: 'Tech Lead', dept: 'engineering', wage: 95000 },
-    { title: 'Payroll Specialist', dept: 'finance', wage: 50000 },
-    { title: 'Accountant', dept: 'finance', wage: 48000 },
-    { title: 'Senior Accountant', dept: 'finance', wage: 62000 },
-    { title: 'Financial Analyst', dept: 'finance', wage: 58000 },
-    { title: 'Finance Manager', dept: 'finance', wage: 90000 },
-    { title: 'HR Officer', dept: 'hr', wage: 45000 },
-    { title: 'Recruiter', dept: 'hr', wage: 42000 },
-    { title: 'HR Manager', dept: 'hr', wage: 75000 },
-    { title: 'Talent Acquisition Specialist', dept: 'hr', wage: 52000 },
-    { title: 'HR Business Partner', dept: 'hr', wage: 68000 },
-  ]
-  const banks = ['HDFC', 'ICICI', 'SBI', 'AXIS', 'PNB', 'BOB', 'KOTAK', 'YES', 'IDBI', 'UNION']
-  
+  // The four named demo employees the walkthrough relies on.
+  // Neha has no bank account on purpose (drives the payroll warning demo).
   const employeesData: Array<{
     name: string
     workEmail: string
@@ -106,18 +83,14 @@ async function main() {
     userId?: string
     wage: string
     bankAccount: string | null
-  }> = []
-
-  // Original named employees the demo walkthrough relies on. Neha has no
-  // bank account on purpose (drives the payroll warning demo).
-  employeesData.push(
+  }> = [
     {
       name: 'Aarav Mehta',
       workEmail: 'aarav@oxp.com',
       jobPosition: 'Payroll Specialist',
       departmentId: finance.id,
       userId: aaravUser.id,
-      wage: '50000',
+      wage: '85000',
       bankAccount: 'HDFC-0001',
     },
     {
@@ -125,7 +98,7 @@ async function main() {
       workEmail: 'sara@oxp.com',
       jobPosition: 'HR Officer',
       departmentId: hr.id,
-      wage: '45000',
+      wage: '95000',
       bankAccount: 'ICICI-0002',
     },
     {
@@ -133,7 +106,7 @@ async function main() {
       workEmail: 'john@oxp.com',
       jobPosition: 'Developer',
       departmentId: engineering.id,
-      wage: '60000',
+      wage: '78000',
       bankAccount: 'SBI-0003',
     },
     {
@@ -141,43 +114,12 @@ async function main() {
       workEmail: 'neha@oxp.com',
       jobPosition: 'Recruiter',
       departmentId: hr.id,
-      wage: '40000',
+      wage: '60000',
       bankAccount: null,
     },
-  )
+  ]
 
-  // Generate 197 more random employees (4 named above + 197 = ~201 total)
-  for (let i = 1; i < 197; i++) {
-    const firstName = firstNames[Math.floor(Math.random() * firstNames.length)]
-    const lastName = lastNames[Math.floor(Math.random() * lastNames.length)]
-    const name = `${firstName} ${lastName}`
-    const emailName = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}`
-    const workEmail = `${emailName}@oxp.com`
-    
-    const job = jobPositions[Math.floor(Math.random() * jobPositions.length)]
-    const departmentId = job.dept === 'engineering' ? engineering.id : job.dept === 'finance' ? finance.id : hr.id
-    
-    // Vary wages by ±15%
-    const wageVariation = 0.85 + Math.random() * 0.3
-    const wage = Math.floor(job.wage * wageVariation).toString()
-    
-    // 90% have bank accounts
-    const hasBankAccount = Math.random() < 0.9
-    const bankAccount = hasBankAccount 
-      ? `${banks[Math.floor(Math.random() * banks.length)]}-${String(i + 1).padStart(4, '0')}`
-      : null
-
-    employeesData.push({
-      name,
-      workEmail,
-      jobPosition: job.title,
-      departmentId,
-      wage,
-      bankAccount
-    })
-  }
-
-  let contractSeq = 40
+  let contractSeq = 1
   for (const e of employeesData) {
     const emp = await prisma.employee.create({
       data: {

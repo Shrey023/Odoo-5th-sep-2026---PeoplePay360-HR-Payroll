@@ -124,6 +124,10 @@ export function AllocationFormDialog({ open, onOpenChange }: Props) {
               {errors.validTo && <p className="text-xs text-destructive">{errors.validTo.message}</p>}
             </div>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Input id="description" placeholder="e.g. Annual leave balance granted at start of policy year." {...register('description')} />
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

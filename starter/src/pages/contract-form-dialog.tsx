@@ -182,6 +182,12 @@ export function ContractFormDialog({ open, onOpenChange, employeeId, contract }:
               ))}
             </select>
           </div>
+          <div className="space-y-2">
+            <Label>Salary Structure / Notes</Label>
+            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+              Structure Type: Employee Salary — This running contract is the source for payroll calculation in the active period.
+            </div>
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

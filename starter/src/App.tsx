@@ -1,17 +1,26 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/app-layout'
 import { RequireAuth } from '@/lib/auth'
+import { AttendancePage } from '@/pages/attendance'
+import { ContractsPage } from '@/pages/contracts'
 import { DashboardPage } from '@/pages/dashboard'
+import { DepartmentsPage } from '@/pages/departments'
 import { EmployeeDetailPage } from '@/pages/employee-detail'
 import { EmployeesPage } from '@/pages/employees'
 import { LoginPage } from '@/pages/login'
 import { PayrunDetailPage } from '@/pages/payrun-detail'
 import { PayrunsPage } from '@/pages/payruns'
+import { PayslipsPage } from '@/pages/payslips'
 import { RegisterPage } from '@/pages/register'
+import { SalaryRulesPage } from '@/pages/salary-rules'
 import { SalaryStructureDetailPage } from '@/pages/salary-structure-detail'
 import { SalaryStructuresPage } from '@/pages/salary-structures'
-import { TimeOffPage } from '@/pages/time-off'
+import { TimeOffAllocationsPage } from '@/pages/time-off-allocations'
+import { TimeOffRequestsPage } from '@/pages/time-off-requests'
+import { TimeOffTypesPage } from '@/pages/time-off-types'
 import { UsersPage } from '@/pages/users'
+import { WorkingScheduleDetailPage } from '@/pages/working-schedule-detail'
+import { WorkingSchedulesPage } from '@/pages/working-schedules'
 
 export default function App() {
   return (
@@ -26,13 +35,33 @@ export default function App() {
         }
       >
         <Route path="/" element={<DashboardPage />} />
+
+        {/* Employees group */}
         <Route path="/employees" element={<EmployeesPage />} />
         <Route path="/employees/:id" element={<EmployeeDetailPage />} />
-        <Route path="/salary-structures" element={<SalaryStructuresPage />} />
-        <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
+        <Route path="/contracts" element={<ContractsPage />} />
+        <Route path="/departments" element={<DepartmentsPage />} />
+        <Route path="/working-schedules" element={<WorkingSchedulesPage />} />
+        <Route path="/working-schedules/:id" element={<WorkingScheduleDetailPage />} />
+
+        {/* Attendance */}
+        <Route path="/attendance" element={<AttendancePage />} />
+
+        {/* Time Off group */}
+        <Route path="/time-off" element={<Navigate to="/time-off/requests" replace />} />
+        <Route path="/time-off/requests" element={<TimeOffRequestsPage />} />
+        <Route path="/time-off/allocations" element={<TimeOffAllocationsPage />} />
+        <Route path="/time-off/types" element={<TimeOffTypesPage />} />
+
+        {/* Payroll group */}
         <Route path="/payruns" element={<PayrunsPage />} />
         <Route path="/payruns/:id" element={<PayrunDetailPage />} />
-        <Route path="/time-off" element={<TimeOffPage />} />
+        <Route path="/payslips" element={<PayslipsPage />} />
+        <Route path="/salary-structures" element={<SalaryStructuresPage />} />
+        <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
+        <Route path="/salary-rules" element={<SalaryRulesPage />} />
+
+        {/* Admin */}
         <Route path="/users" element={<UsersPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

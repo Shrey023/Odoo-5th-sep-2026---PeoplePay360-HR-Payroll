@@ -23,6 +23,7 @@ const schema = z
     startDate: z.string().min(1, 'Start date required'),
     endDate: z.string().min(1, 'End date required'),
     duration: z.number().positive('Duration must be greater than 0'),
+    reason: z.string().optional(),
   })
   .refine((v) => v.endDate >= v.startDate, {
     message: 'End must be on or after start',
@@ -123,6 +124,10 @@ export function RequestFormDialog({ open, onOpenChange }: Props) {
             <Label htmlFor="duration">Duration</Label>
             <Input id="duration" type="number" step="0.5" {...register('duration', { valueAsNumber: true })} />
             {errors.duration && <p className="text-xs text-destructive">{errors.duration.message}</p>}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reason">Reason</Label>
+            <Input id="reason" placeholder="e.g. Family vacation" {...register('reason')} />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

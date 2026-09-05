@@ -175,37 +175,55 @@ export function PayrunDetailPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
+                  <TableHead>Warning</TableHead>
+                  <TableHead className="text-right">Worked</TableHead>
+                  <TableHead className="text-right">Basic</TableHead>
                   <TableHead className="text-right">Gross</TableHead>
-                  <TableHead className="text-right">Deductions</TableHead>
                   <TableHead className="text-right">Net</TableHead>
-                  <TableHead className="w-16" />
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-16">PDF</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payrun.payslips.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.employee.name}</TableCell>
-                    <TableCell className="text-right">{money(s.gross)}</TableCell>
-                    <TableCell className="text-right">{money(s.deductions)}</TableCell>
-                    <TableCell className="text-right font-semibold">{money(s.net)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Download PDF"
-                        onClick={() => downloadPdf(s.id, s.employee.name.replace(/\s+/g, '-'))}
-                      >
-                        <Download className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {payrun.payslips.map((s) => {
+                  const warn = payrun.warnings.find((w) => w.employeeId === s.employee.id)
+                  const basicLine = s.lines.find((l) => l.category === 'BASIC')
+                  return (
+                    <TableRow key={s.id}>
+                      <TableCell className="font-medium">{s.employee.name}</TableCell>
+                      <TableCell>
+                        {warn ? (
+                          <span className="text-xs text-amber-600">{warn.type === 'MISSING_BANK' ? 'A/C missing' : warn.type === 'DUPLICATE_PAYSLIP' ? 'Duplicate' : warn.type}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right">{s.workedDays}</TableCell>
+                      <TableCell className="text-right">{basicLine ? money(basicLine.amount) : '—'}</TableCell>
+                      <TableCell className="text-right">{money(s.gross)}</TableCell>
+                      <TableCell className="text-right font-semibold">{money(s.net)}</TableCell>
+                      <TableCell>
+                        <Badge variant={s.status === 'PAID' || s.status === 'VALIDATED' ? 'default' : 'secondary'} className="text-xs">
+                          {s.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Download PDF"
+                          onClick={() => downloadPdf(s.id, s.employee.name.replace(/\s+/g, '-'))}
+                        >
+                          <Download className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
                 <TableRow>
-                  <TableCell className="font-semibold">Total</TableCell>
-                  <TableCell />
-                  <TableCell />
+                  <TableCell className="font-semibold" colSpan={5}>Total</TableCell>
                   <TableCell className="text-right font-semibold">{money(totalNet)}</TableCell>
-                  <TableCell />
+                  <TableCell /><TableCell />
                 </TableRow>
               </TableBody>
             </Table>

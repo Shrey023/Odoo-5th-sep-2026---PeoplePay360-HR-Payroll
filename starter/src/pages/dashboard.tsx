@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { AlertTriangle, Banknote, CalendarCheck, Receipt, Users } from 'lucide-react'
+import { AlertTriangle, Banknote, CalendarCheck, Clock, Receipt, Users } from 'lucide-react'
 import { useState } from 'react'
 import {
   Bar,
@@ -7,6 +7,8 @@ import {
   CartesianGrid,
   Cell,
   Legend,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -15,12 +17,20 @@ import {
   YAxis,
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { dashboardApi } from '@/lib/dashboard.api'
 import { departmentsApi } from '@/lib/departments.api'
 
 const TYPE_OPTIONS = [
-  { value: '', label: 'All types' },
-  { value: 'FULL_TIME', label: 'Full time' },
+  { value: '', label: 'All Types' },
+  { value: 'FULL_TIME', label: 'Full Time' },
   { value: 'CONTRACTOR', label: 'Contractor' },
   { value: 'INTERN', label: 'Intern' },
 ]
@@ -32,7 +42,10 @@ const ATTENDANCE_COLORS: Record<string, string> = {
   OVERTIME: '#2563eb',
 }
 
-const currency = (n: number) => `₹${n.toLocaleString()}`
+const currency = (n: number) =>
+  n >= 100000
+    ? `₹${(n / 100000).toFixed(1)}L`
+    : `₹${n.toLocaleString('en-IN')}`
 
 export function DashboardPage() {
   const [employeeType, setEmployeeType] = useState('')
@@ -56,30 +69,66 @@ export function DashboardPage() {
     return <p className="text-sm text-muted-foreground">Loading dashboard...</p>
   }
 
-  const { kpis, byDepartment, timeOff, attendance, warnings } = data
+  const { kpis, byDepartment, timeOff, attendance, trend, warnings } = data
 
   const kpiCards = [
-    { label: 'Active Employees', value: kpis.activeEmployees, icon: Users },
-    { label: 'Total Net Pay', value: currency(kpis.totalNet), icon: Banknote },
-    { label: 'Payslips (Paid / Pending)', value: `${kpis.paid} / ${kpis.pending}`, icon: Receipt },
-    { label: 'Approved Leave Days', value: timeOff.approvedDays, icon: CalendarCheck },
+    {
+      label: 'Total Net Salary Paid',
+      value: currency(kpis.totalNet),
+      sub: `${kpis.paid} paid, ${kpis.pending} pending`,
+      icon: Banknote,
+    },
+    {
+      label: 'Payslips Generated',
+      value: kpis.payslips,
+      sub: `${kpis.paid} paid · ${kpis.pending} pending`,
+      icon: Receipt,
+    },
+    {
+      label: 'Avg Salary / Employee',
+      value: currency(kpis.avgSalary),
+      sub: `Across ${kpis.activeEmployees} active employees`,
+      icon: Users,
+    },
+    {
+      label: 'Approved Time Off Days',
+      value: `${timeOff.approvedDays} Days`,
+      sub: `${timeOff.pendingRequests} pending requests`,
+      icon: CalendarCheck,
+    },
+    {
+      label: 'Attendance Health',
+      value: `${kpis.attendanceHealth}%`,
+      sub: 'Present / reviewed records',
+      icon: Clock,
+    },
   ]
 
   const attendanceData = Object.entries(attendance.byStatus)
     .filter(([, count]) => count > 0)
     .map(([name, value]) => ({ name, value }))
 
+  const trendData = trend.map((t) => ({
+    month: t.month.slice(5),
+    net: t.net,
+  }))
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Live payroll overview across the company.</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-2xl font-semibold">Payroll Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            Live payroll and HR overview across the company.
+          </p>
+        </div>
         <div className="flex gap-2">
           <select
             value={departmentId}
             onChange={(ev) => setDepartmentId(ev.target.value)}
             className="h-9 rounded-md border bg-background px-3 text-sm"
           >
-            <option value="">All departments</option>
+            <option value="">All Departments</option>
             {departments?.map((d) => (
               <option key={d.id} value={d.id}>
                 {d.name}
@@ -104,42 +153,46 @@ export function DashboardPage() {
         <Card className="border-amber-300 bg-amber-50">
           <CardContent className="p-4">
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-amber-800">
-              <AlertTriangle className="size-4" /> Attention needed
+              <AlertTriangle className="size-4" /> Payroll Alerts
             </div>
             <ul className="space-y-1 text-sm text-amber-900">
               {warnings.map((w) => (
-                <li key={w.type}>- {w.message}</li>
+                <li key={w.type}>• {w.message}</li>
               ))}
             </ul>
           </CardContent>
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {/* KPI cards */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         {kpiCards.map((c) => (
           <Card key={c.label}>
-            <CardContent className="flex items-center gap-3 p-4">
-              <c.icon className="size-5 text-muted-foreground" />
-              <div>
-                <div className="text-2xl font-semibold">{c.value}</div>
-                <div className="text-xs text-muted-foreground">{c.label}</div>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 text-muted-foreground mb-2">
+                <c.icon className="size-4" />
+                <span className="text-xs">{c.label}</span>
               </div>
+              <div className="text-2xl font-semibold">{c.value}</div>
+              <div className="text-xs text-muted-foreground mt-1">{c.sub}</div>
             </CardContent>
           </Card>
         ))}
       </div>
 
+      {/* Charts row */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Net Salary by Department</CardTitle>
+            <CardTitle className="text-sm">Salary Cost by Department</CardTitle>
+            <p className="text-xs text-muted-foreground">Source: Payslips + Employee Department</p>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
+            <ResponsiveContainer width="100%" height={240}>
               <BarChart data={byDepartment}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" fontSize={12} />
-                <YAxis fontSize={12} tickFormatter={(v) => `${v / 1000}k`} />
+                <XAxis dataKey="name" fontSize={11} />
+                <YAxis fontSize={11} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                 <Tooltip formatter={(v) => currency(v as number)} />
                 <Bar dataKey="net" fill="#2563eb" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -149,47 +202,139 @@ export function DashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm">Attendance Breakdown</CardTitle>
+            <CardTitle className="text-sm">Monthly Net Salary Trend</CardTitle>
+            <p className="text-xs text-muted-foreground">Source: historical Payslips / Payruns</p>
           </CardHeader>
           <CardContent>
-            {attendanceData.length === 0 ? (
+            {trendData.length === 0 ? (
               <p className="py-16 text-center text-sm text-muted-foreground">
-                No attendance records.
+                No validated payruns yet.
               </p>
             ) : (
-              <ResponsiveContainer width="100%" height={260}>
-                <PieChart>
-                  <Pie data={attendanceData} dataKey="value" nameKey="name" outerRadius={90} label>
-                    {attendanceData.map((d) => (
-                      <Cell key={d.name} fill={ATTENDANCE_COLORS[d.name] ?? '#94a3b8'} />
-                    ))}
-                  </Pie>
-                  <Legend />
-                  <Tooltip />
-                </PieChart>
+              <ResponsiveContainer width="100%" height={240}>
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="month" fontSize={11} />
+                  <YAxis fontSize={11} tickFormatter={(v) => `₹${(v / 100000).toFixed(1)}L`} />
+                  <Tooltip formatter={(v) => currency(v as number)} />
+                  <Line
+                    type="monotone"
+                    dataKey="net"
+                    stroke="#2563eb"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm">Department Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-3">
-            {byDepartment.map((d) => (
-              <div key={d.name} className="rounded-md border p-3">
-                <div className="text-sm font-medium">{d.name}</div>
-                <div className="mt-1 text-xs text-muted-foreground">
-                  {d.headcount} people · {currency(d.net)} net
+      {/* Bottom row */}
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Attendance Overview</CardTitle>
+            <p className="text-xs text-muted-foreground">Source: Attendance</p>
+          </CardHeader>
+          <CardContent>
+            {attendanceData.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No attendance records.
+              </p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie data={attendanceData} dataKey="value" nameKey="name" outerRadius={70} label>
+                      {attendanceData.map((d) => (
+                        <Cell key={d.name} fill={ATTENDANCE_COLORS[d.name] ?? '#94a3b8'} />
+                      ))}
+                    </Pie>
+                    <Legend />
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                  <div>Missing check-outs: {attendance.missingCheckouts}</div>
+                  <div>Attendance coverage: {kpis.attendanceHealth}%</div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Time Off Overview</CardTitle>
+            <p className="text-xs text-muted-foreground">Source: Time Off Requests + Allocations</p>
+          </CardHeader>
+          <CardContent>
+            {timeOff.byType.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No time off data.
+              </p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-xs">Type</TableHead>
+                    <TableHead className="text-right text-xs">Approved</TableHead>
+                    <TableHead className="text-right text-xs">Pending</TableHead>
+                    <TableHead className="text-right text-xs">Remaining</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {timeOff.byType.map((t) => (
+                    <TableRow key={t.name}>
+                      <TableCell className="text-xs py-2">{t.name}</TableCell>
+                      <TableCell className="text-right text-xs py-2">{t.approvedDays}</TableCell>
+                      <TableCell className="text-right text-xs py-2">{t.pending}</TableCell>
+                      <TableCell className="text-right text-xs py-2">{t.remainingBalance}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">Department Overview</CardTitle>
+            <p className="text-xs text-muted-foreground">Source: Employee + Contract + Payslip totals</p>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Department</TableHead>
+                  <TableHead className="text-right text-xs">Headcount</TableHead>
+                  <TableHead className="text-right text-xs">Monthly Salary</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {byDepartment.map((d) => (
+                  <TableRow key={d.name}>
+                    <TableCell className="text-xs py-2">{d.name}</TableCell>
+                    <TableCell className="text-right text-xs py-2">{d.headcount}</TableCell>
+                    <TableCell className="text-right text-xs py-2">{currency(d.net)}</TableCell>
+                  </TableRow>
+                ))}
+                {byDepartment.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={3} className="text-xs text-muted-foreground">
+                      No data.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

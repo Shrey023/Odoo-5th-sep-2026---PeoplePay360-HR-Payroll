@@ -17,7 +17,8 @@ import {
 import { useAuth, HR_ROLES } from '@/lib/auth'
 import { type Contract, contractsApi } from '@/lib/contracts.api'
 import { employeesApi } from '@/lib/employees.api'
-import { attendanceApi, timeOffApi } from '@/lib/timeoff.api'
+import { timeOffApi } from '@/lib/timeoff.api'
+import { attendanceApi } from '@/lib/attendance.api'
 import { ContractFormDialog } from './contract-form-dialog'
 import { PayslipPreviewDialog } from './payslip-preview-dialog'
 
@@ -113,20 +114,7 @@ export function EmployeeDetailPage() {
         ))}
       </div>
 
-      <Card>
-        <CardContent className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
-          <Field label="Work Email" value={e.workEmail} />
-          <Field label="Department" value={e.department?.name ?? '-'} />
-          <Field label="Company" value={e.company?.name ?? '-'} />
-          <Field label="Manager" value={e.manager?.name ?? '-'} />
-          <Field label="Employee Type" value={e.employeeType.replace('_', ' ')} />
-          <Field
-            label="Working Schedule"
-            value={e.schedule ? `${e.schedule.name} (${e.schedule.weeklyHours}h/wk)` : '-'}
-          />
-          <Field label="Bank Account" value={e.bankAccount ?? 'Not set'} />
-        </CardContent>
-      </Card>
+      <EmployeeTabs e={e} />
 
       <Card>
         <CardContent className="p-4">
@@ -298,6 +286,64 @@ export function EmployeeDetailPage() {
         contractId={previewId}
       />
     </div>
+  )
+}
+
+import type { EmployeeDetail } from '@/lib/employees.api'
+
+type EmployeeTabKey = 'work' | 'private' | 'hr'
+
+function EmployeeTabs({ e }: { e: EmployeeDetail }) {
+  const [tab, setTab] = useState<EmployeeTabKey>('work')
+  const tabs: { key: EmployeeTabKey; label: string }[] = [
+    { key: 'work', label: 'Work Information' },
+    { key: 'private', label: 'Private Information' },
+    { key: 'hr', label: 'HR Settings' },
+  ]
+  return (
+    <Card>
+      <CardContent className="p-0">
+        <div className="flex border-b px-4 pt-3">
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`px-3 pb-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                tab === t.key
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2">
+          {tab === 'work' && (
+            <>
+              <Field label="Work Email" value={e.workEmail} />
+              <Field label="Job Position" value={e.jobPosition ?? '-'} />
+              <Field label="Department" value={e.department?.name ?? '-'} />
+              <Field label="Manager" value={e.manager?.name ?? '-'} />
+              <Field label="Working Schedule" value={e.schedule ? `${e.schedule.name} (${e.schedule.weeklyHours}h/wk)` : '-'} />
+              <Field label="Company" value={e.company?.name ?? '-'} />
+            </>
+          )}
+          {tab === 'private' && (
+            <>
+              <Field label="Bank Account" value={e.bankAccount ?? 'Not set'} />
+              <Field label="Employee Type" value={e.employeeType.replace(/_/g, ' ')} />
+            </>
+          )}
+          {tab === 'hr' && (
+            <>
+              <Field label="Status" value={e.status} />
+              <Field label="Employee Type" value={e.employeeType.replace(/_/g, ' ')} />
+            </>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

@@ -26,6 +26,7 @@ export interface Payslip {
   net: string
   gross: string
   deductions: string
+  workedDays: string
   status: string
   employee: { id: string; name: string; bankAccount: string | null }
   lines: PayslipLine[]

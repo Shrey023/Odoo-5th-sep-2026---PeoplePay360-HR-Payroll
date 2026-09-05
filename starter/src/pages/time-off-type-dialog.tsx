@@ -20,6 +20,7 @@ const schema = z.object({
   unit: z.enum(['DAYS', 'HOURS']),
   requiresAllocation: z.boolean(),
   approvalRequired: z.boolean(),
+  color: z.string().optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -37,7 +38,7 @@ export function TimeOffTypeDialog({ open, onOpenChange }: Props) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { unit: 'DAYS', requiresAllocation: true, approvalRequired: true },
+    defaultValues: { unit: 'DAYS', requiresAllocation: true, approvalRequired: true, color: '#1971c2' },
   })
 
   const save = useMutation({
@@ -82,6 +83,13 @@ export function TimeOffTypeDialog({ open, onOpenChange }: Props) {
             <input type="checkbox" {...register('approvalRequired')} />
             Requires approval
           </label>
+          <div className="space-y-2">
+            <Label htmlFor="color">Display Color</Label>
+            <div className="flex items-center gap-2">
+              <input type="color" id="color" className="h-9 w-16 rounded-md border cursor-pointer" {...register('color')} />
+              <span className="text-xs text-muted-foreground">Pick a color for this leave type</span>
+            </div>
+          </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel

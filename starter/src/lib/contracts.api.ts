@@ -30,6 +30,7 @@ export interface ContractInput {
 }
 
 export const contractsApi = {
+  listAll: () => http<(Contract & { employee: { id: string; name: string } })[]>('/contracts'),
   listForEmployee: (employeeId: string) =>
     http<Contract[]>(`/contracts?employeeId=${employeeId}`),
   create: (input: ContractInput) =>

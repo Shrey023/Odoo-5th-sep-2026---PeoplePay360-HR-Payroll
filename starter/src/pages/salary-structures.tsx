@@ -56,8 +56,13 @@ export function SalaryStructuresPage() {
           <Link key={s.id} to={`/salary-structures/${s.id}`}>
             <Card className="transition-colors hover:bg-accent">
               <CardContent className="p-4">
-                <div className="font-medium">{s.name}</div>
-                <div className="text-xs text-muted-foreground">{s._count.rules} rules</div>
+                <div className="flex items-center justify-between">
+                  <div className="font-medium">{s.name}</div>
+                  <span className={`text-xs font-medium ${s.status === 'ACTIVE' ? 'text-green-600' : 'text-muted-foreground'}`}>
+                    {s.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">{s._count.rules} rules</div>
               </CardContent>
             </Card>
           </Link>

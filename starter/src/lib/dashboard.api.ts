@@ -7,16 +7,20 @@ export interface DashboardData {
     payslips: number
     paid: number
     pending: number
+    avgSalary: number
+    attendanceHealth: number
   }
   byDepartment: { name: string; headcount: number; net: number }[]
   timeOff: {
     approvedDays: number
     pendingRequests: number
+    byType: { name: string; approvedDays: number; pending: number; remainingBalance: number }[]
   }
   attendance: {
     byStatus: { PRESENT: number; LATE: number; ABSENT: number; OVERTIME: number }
     missingCheckouts: number
   }
+  trend: { month: string; net: number }[]
   warnings: { type: string; message: string }[]
 }
 

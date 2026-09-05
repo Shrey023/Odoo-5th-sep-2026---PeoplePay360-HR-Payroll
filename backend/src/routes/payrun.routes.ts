@@ -10,8 +10,9 @@ export const payrunRouter = Router()
 payrunRouter.use(authenticate)
 
 payrunRouter.get('/', asyncHandler(controller.list))
-payrunRouter.get('/:id', asyncHandler(controller.getOne))
+payrunRouter.get('/payslips/all', asyncHandler(controller.listAllPayslips))
 payrunRouter.get('/payslips/:payslipId/pdf', asyncHandler(controller.downloadPayslip))
+payrunRouter.get('/:id', asyncHandler(controller.getOne))
 
 payrunRouter.post('/', authorize(...PAYROLL_WRITE_ROLES), asyncHandler(controller.create))
 payrunRouter.patch('/:id', authorize(...PAYROLL_WRITE_ROLES), asyncHandler(controller.update))
