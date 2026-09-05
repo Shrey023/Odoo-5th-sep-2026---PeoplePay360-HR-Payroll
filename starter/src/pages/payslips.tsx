@@ -85,7 +85,11 @@ export function PayslipsPage() {
             <TableBody>
               {filtered.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.employee.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link to={`/payslips/${p.id}`} className="hover:underline">
+                      {p.employee.name}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <Link to={`/payruns/${p.payrun.id}`} className="hover:underline text-sm">
                       {p.payrun.name}

@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
@@ -37,14 +37,15 @@ export function LoginPage() {
   return (
     <div className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl">Welcome back</CardTitle>
+          <p className="text-sm text-muted-foreground">Sign in to continue to your workspace.</p>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="payroll@oxp.com" {...register('email')} />
+              <Label htmlFor="email">Work Email</Label>
+              <Input id="email" type="email" placeholder="name@company.com" {...register('email')} />
               {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
@@ -55,13 +56,10 @@ export function LoginPage() {
               )}
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              Sign in
+              Sign In
             </Button>
-            <p className="text-center text-sm text-muted-foreground">
-              No account?{' '}
-              <Link to="/register" className="underline">
-                Register
-              </Link>
+            <p className="text-center text-xs text-muted-foreground">
+              Accounts are created by an administrator.
             </p>
             <p className="rounded-md bg-muted p-2 text-center text-xs text-muted-foreground">
               Demo: payroll@oxp.com / password123

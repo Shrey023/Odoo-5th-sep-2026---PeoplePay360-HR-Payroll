@@ -37,6 +37,11 @@ export function dayName(n: number) {
 export const scheduleApi = {
   list: () => http<WorkingSchedule[]>('/schedules'),
   get: (id: string) => http<WorkingSchedule>(`/schedules/${id}`),
+  create: (name: string, calendarType?: string) =>
+    http<WorkingSchedule>('/schedules', {
+      method: 'POST',
+      body: JSON.stringify({ name, calendarType: calendarType ?? 'Standard' }),
+    }),
   upsertLines: (id: string, input: UpsertLinesInput) =>
     http<WorkingSchedule>(`/schedules/${id}/lines`, {
       method: 'PUT',

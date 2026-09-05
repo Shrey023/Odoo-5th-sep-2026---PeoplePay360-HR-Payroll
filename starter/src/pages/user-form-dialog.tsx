@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { Role } from '@/lib/auth'
+import { employeesApi } from '@/lib/employees.api'
 import { type CreateUserInput, usersApi } from '@/lib/users.api'
 
 const allRoles: { value: Role; label: string }[] = [
@@ -30,6 +31,7 @@ const schema = z.object({
   email: z.string().email('Valid email required'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   roles: z.array(z.string()).min(1, 'At least one role is required'),
+  employeeId: z.string().optional(),
 })
 type FormValues = z.infer<typeof schema>
 
@@ -43,10 +45,16 @@ const empty: FormValues = {
   email: '',
   password: '',
   roles: ['EMPLOYEE'],
+  employeeId: '',
 }
 
 export function UserFormDialog({ open, onOpenChange }: Props) {
   const qc = useQueryClient()
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees', ''],
+    queryFn: () => employeesApi.list(),
+  })
 
   const {
     register,
@@ -70,6 +78,7 @@ export function UserFormDialog({ open, onOpenChange }: Props) {
       const payload: CreateUserInput = {
         ...values,
         roles: values.roles as Role[],
+        employeeId: values.employeeId || null,
       }
       return usersApi.create(payload)
     },
@@ -96,6 +105,19 @@ export function UserFormDialog({ open, onOpenChange }: Props) {
           <DialogTitle>New user</DialogTitle>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit((v) => save.mutate(v))}>
+          <div className="space-y-2">
+            <Label htmlFor="employeeId">Employee <span className="text-muted-foreground text-xs">(optional — link to employee record)</span></Label>
+            <select
+              id="employeeId"
+              className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+              {...register('employeeId')}
+            >
+              <option value="">Select employee…</option>
+              {employees.map((e) => (
+                <option key={e.id} value={e.id}>{e.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" {...register('name')} />

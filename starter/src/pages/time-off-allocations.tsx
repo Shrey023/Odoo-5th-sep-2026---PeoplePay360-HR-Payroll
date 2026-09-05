@@ -35,6 +35,11 @@ export function TimeOffAllocationsPage() {
     queryFn: () => timeOffApi.listAllocations(),
   })
 
+  const { data: requests = [] } = useQuery({
+    queryKey: ['time-off-requests'],
+    queryFn: () => timeOffApi.listRequests(),
+  })
+
   const decideAlloc = useMutation({
     mutationFn: ({ id, status }: { id: string; status: AllocationStatus }) =>
       timeOffApi.decideAllocation(id, status),
@@ -44,6 +49,18 @@ export function TimeOffAllocationsPage() {
     },
     onError: (e: Error) => toast.error(e.message),
   })
+
+  function getTaken(employeeId: string, typeId: string) {
+    return requests
+      .filter(
+        (r) =>
+          r.employee.id === employeeId &&
+          r.type.id === typeId &&
+          r.status === 'APPROVED' &&
+          r.type.requiresAllocation,
+      )
+      .reduce((sum, r) => sum + Number(r.duration), 0)
+  }
 
   const filtered = allocations.filter(
     (a) => !search || a.employee.name.toLowerCase().includes(search.toLowerCase()),
@@ -76,53 +93,66 @@ export function TimeOffAllocationsPage() {
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead>Allocated</TableHead>
+                <TableHead className="text-right">Allocated</TableHead>
+                <TableHead className="text-right">Taken</TableHead>
+                <TableHead className="text-right">Remaining</TableHead>
                 <TableHead>Validity</TableHead>
                 <TableHead>Status</TableHead>
                 {canEdit && <TableHead className="w-24" />}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((a) => (
-                <TableRow key={a.id}>
-                  <TableCell className="font-medium">{a.employee.name}</TableCell>
-                  <TableCell>{a.type.name}</TableCell>
-                  <TableCell>
-                    {a.amount} {a.type.unit.toLowerCase()}
-                  </TableCell>
-                  <TableCell>
-                    {a.validFrom.slice(0, 10)} — {a.validTo.slice(0, 10)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={allocVariant[a.status]}>{a.status}</Badge>
-                  </TableCell>
-                  {canEdit && (
-                    <TableCell>
-                      {a.status === 'DRAFT' && (
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => decideAlloc.mutate({ id: a.id, status: 'APPROVED' })}
-                          >
-                            <Check className="size-4 text-green-600" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => decideAlloc.mutate({ id: a.id, status: 'REFUSED' })}
-                          >
-                            <X className="size-4 text-destructive" />
-                          </Button>
-                        </div>
-                      )}
+              {filtered.map((a) => {
+                const allocated = Number(a.amount)
+                const taken = a.status === 'APPROVED' ? getTaken(a.employee.id, a.type.id) : 0
+                const remaining = Math.max(0, allocated - taken)
+                return (
+                  <TableRow key={a.id}>
+                    <TableCell className="font-medium">{a.employee.name}</TableCell>
+                    <TableCell>{a.type.name}</TableCell>
+                    <TableCell className="text-right">
+                      {allocated} {a.type.unit.toLowerCase()}
                     </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                    <TableCell className="text-right">
+                      {a.status === 'APPROVED' ? `${taken} ${a.type.unit.toLowerCase()}` : '-'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {a.status === 'APPROVED' ? `${remaining} ${a.type.unit.toLowerCase()}` : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {a.validFrom.slice(0, 10)} — {a.validTo.slice(0, 10)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={allocVariant[a.status]}>{a.status}</Badge>
+                    </TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        {a.status === 'DRAFT' && (
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => decideAlloc.mutate({ id: a.id, status: 'APPROVED' })}
+                            >
+                              <Check className="size-4 text-green-600" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => decideAlloc.mutate({ id: a.id, status: 'REFUSED' })}
+                            >
+                              <X className="size-4 text-destructive" />
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-sm text-muted-foreground">
+                  <TableCell colSpan={8} className="text-sm text-muted-foreground">
                     No allocations yet.
                   </TableCell>
                 </TableRow>

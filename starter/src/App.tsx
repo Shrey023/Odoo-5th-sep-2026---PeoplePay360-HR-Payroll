@@ -10,6 +10,7 @@ import { EmployeesPage } from '@/pages/employees'
 import { LoginPage } from '@/pages/login'
 import { PayrunDetailPage } from '@/pages/payrun-detail'
 import { PayrunsPage } from '@/pages/payruns'
+import { PayslipDetailPage } from '@/pages/payslip-detail'
 import { PayslipsPage } from '@/pages/payslips'
 import { RegisterPage } from '@/pages/register'
 import { SalaryRulesPage } from '@/pages/salary-rules'
@@ -57,6 +58,7 @@ export default function App() {
         <Route path="/payruns" element={<PayrunsPage />} />
         <Route path="/payruns/:id" element={<PayrunDetailPage />} />
         <Route path="/payslips" element={<PayslipsPage />} />
+        <Route path="/payslips/:id" element={<PayslipDetailPage />} />
         <Route path="/salary-structures" element={<SalaryStructuresPage />} />
         <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
         <Route path="/salary-rules" element={<SalaryRulesPage />} />

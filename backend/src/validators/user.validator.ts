@@ -11,6 +11,7 @@ export const createUserSchema = z.object({
     .array(z.enum(userRoles as [UserRole, ...UserRole[]]))
     .min(1, 'At least one role is required')
     .refine((roles) => roles.length > 0, 'At least one role is required'),
+  employeeId: z.string().uuid().optional().nullable(),
 })
 
 export const updateUserRolesSchema = z.object({

@@ -12,6 +12,7 @@ payrunRouter.use(authenticate)
 payrunRouter.get('/', asyncHandler(controller.list))
 payrunRouter.get('/payslips/all', asyncHandler(controller.listAllPayslips))
 payrunRouter.get('/payslips/:payslipId/pdf', asyncHandler(controller.downloadPayslip))
+payrunRouter.get('/payslips/:payslipId', asyncHandler(controller.getPayslip))
 payrunRouter.get('/:id', asyncHandler(controller.getOne))
 
 payrunRouter.post('/', authorize(...PAYROLL_WRITE_ROLES), asyncHandler(controller.create))

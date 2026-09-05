@@ -19,9 +19,18 @@ const detailInclude = {
 } satisfies Prisma.PayrunInclude
 
 export async function list() {
-  return prisma.payrun.findMany({
-    include: { structure: { select: { id: true, name: true } }, _count: { select: { payslips: true } } },
+  const payruns = await prisma.payrun.findMany({
+    include: {
+      structure: { select: { id: true, name: true } },
+      _count: { select: { payslips: true } },
+      payslips: { select: { employee: { select: { bankAccount: true } } } },
+    },
     orderBy: { createdAt: 'desc' },
+  })
+  return payruns.map((p) => {
+    const warningsCount = p.payslips.filter((s) => !s.employee.bankAccount).length
+    const { payslips: _payslips, ...rest } = p
+    return { ...rest, warningsCount }
   })
 }
 

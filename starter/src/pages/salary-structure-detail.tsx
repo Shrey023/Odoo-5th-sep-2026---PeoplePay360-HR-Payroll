@@ -58,7 +58,12 @@ export function SalaryStructureDetailPage() {
       </Button>
 
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">{structure.name}</h2>
+        <div>
+          <h2 className="text-xl font-semibold">{structure.name}</h2>
+          <Badge variant={structure.status === 'ACTIVE' ? 'default' : 'secondary'} className="mt-1">
+            {structure.status === 'ACTIVE' ? 'Active' : 'Inactive'}
+          </Badge>
+        </div>
         {canEdit && (
           <Button
             size="sm"

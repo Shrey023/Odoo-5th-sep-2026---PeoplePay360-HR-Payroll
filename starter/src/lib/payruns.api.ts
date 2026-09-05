@@ -10,6 +10,7 @@ export interface PayrunSummary {
   periodEnd: string
   structure: { id: string; name: string }
   _count: { payslips: number }
+  warningsCount: number
 }
 
 export interface PayslipLine {

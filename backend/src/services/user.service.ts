@@ -37,14 +37,29 @@ export async function create(input: CreateUserInput) {
   // Hash password using bcrypt
   const passwordHash = await bcrypt.hash(input.password, 10)
 
+  // If employeeId provided, link user to employee
+  if (input.employeeId) {
+    const emp = await prisma.employee.findUnique({ where: { id: input.employeeId } })
+    if (!emp) throw new HttpError(404, 'Employee not found')
+  }
+
   const user = await prisma.user.create({
     data: {
       name: input.name,
       email: input.email,
       passwordHash,
       roles: input.roles,
+      ...(input.employeeId ? { employee: { connect: { id: input.employeeId } } } : {}),
     },
   })
+
+  // Update employee record to link back to this user
+  if (input.employeeId) {
+    await prisma.employee.update({
+      where: { id: input.employeeId },
+      data: { userId: user.id },
+    })
+  }
 
   return sanitizeUser(user)
 }

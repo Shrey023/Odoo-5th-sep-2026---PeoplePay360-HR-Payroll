@@ -66,7 +66,15 @@ export function TimeOffTypesPage() {
             <TableBody>
               {filtered.map((t) => (
                 <TableRow key={t.id}>
-                  <TableCell className="font-medium">{t.name}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block size-3 rounded-full border"
+                        style={{ backgroundColor: t.color || '#1971c2' }}
+                      />
+                      <span className="font-medium">{t.name}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>{t.unit === 'DAYS' ? 'Days' : 'Hours'}</TableCell>
                   <TableCell>
                     <Badge variant={t.requiresAllocation ? 'default' : 'secondary'}>

@@ -13,6 +13,7 @@ export interface CreateUserInput {
   email: string
   password: string
   roles: Role[]
+  employeeId?: string | null
 }
 
 export interface UpdateUserRolesInput {

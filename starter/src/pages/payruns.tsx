@@ -57,6 +57,7 @@ export function PayrunsPage() {
                   <TableHead>Period</TableHead>
                   <TableHead>Structure</TableHead>
                   <TableHead>Payslips</TableHead>
+                  <TableHead>Warnings</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -69,10 +70,17 @@ export function PayrunsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      {p.periodStart.slice(0, 10)} - {p.periodEnd.slice(0, 10)}
+                      {p.periodStart.slice(0, 10)} — {p.periodEnd.slice(0, 10)}
                     </TableCell>
                     <TableCell>{p.structure.name}</TableCell>
                     <TableCell>{p._count.payslips}</TableCell>
+                    <TableCell>
+                      {p.warningsCount > 0 ? (
+                        <span className="text-xs font-medium text-amber-600">{p.warningsCount} warning{p.warningsCount > 1 ? 's' : ''}</span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">No warnings</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={statusVariant[p.status]}>{p.status}</Badge>
                     </TableCell>

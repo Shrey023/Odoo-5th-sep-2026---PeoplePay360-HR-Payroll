@@ -10,5 +10,6 @@ export const scheduleRouter = Router()
 scheduleRouter.use(authenticate)
 
 scheduleRouter.get('/', asyncHandler(controller.list))
+scheduleRouter.post('/', authorize(...HR_ROLES), asyncHandler(controller.create))
 scheduleRouter.get('/:id', asyncHandler(controller.getOne))
 scheduleRouter.put('/:id/lines', authorize(...HR_ROLES), asyncHandler(controller.upsertLines))

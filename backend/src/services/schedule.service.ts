@@ -29,6 +29,13 @@ export function list() {
   return prisma.workingSchedule.findMany({ include, orderBy: { name: 'asc' } })
 }
 
+export function createSchedule(name: string, calendarType: string) {
+  return prisma.workingSchedule.create({
+    data: { name, calendarType, daysPerWeek: 0, weeklyHours: 0 },
+    include,
+  })
+}
+
 export async function getById(id: string) {
   const schedule = await prisma.workingSchedule.findUnique({ where: { id }, include })
   if (!schedule) throw new HttpError(404, 'Working schedule not found')

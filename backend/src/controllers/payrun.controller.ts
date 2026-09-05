@@ -60,6 +60,22 @@ export async function downloadPayslip(req: Request, res: Response) {
   res.send(buffer)
 }
 
+export async function getPayslip(req: Request, res: Response) {
+  const data = await prisma.payslip.findUnique({
+    where: { id: req.params.payslipId },
+    include: {
+      employee: { select: { id: true, name: true, bankAccount: true } },
+      payrun: { select: { id: true, name: true, periodStart: true, periodEnd: true } },
+      lines: { orderBy: { sequence: 'asc' } },
+    },
+  })
+  if (!data) {
+    res.status(404).json({ success: false, message: 'Payslip not found' })
+    return
+  }
+  ok(res, { message: 'Payslip', data })
+}
+
 export async function listAllPayslips(_req: Request, res: Response) {
   const data = await prisma.payslip.findMany({
     include: {
