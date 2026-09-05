@@ -12,6 +12,13 @@ export interface DashboardData {
   timeOff: {
     approvedDays: number
     pendingRequests: number
+    byType: {
+      typeName: string
+      unit: string
+      allocated: number
+      taken: number
+      remaining: number
+    }[]
   }
   attendance: {
     byStatus: { PRESENT: number; LATE: number; ABSENT: number; OVERTIME: number }

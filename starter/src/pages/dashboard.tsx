@@ -190,6 +190,48 @@ export function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm">Leave Balances by Type</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {timeOff.byType.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">
+              No leave types configured.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b">
+                    <th className="pb-2 text-left font-medium">Type</th>
+                    <th className="pb-2 text-right font-medium">Allocated</th>
+                    <th className="pb-2 text-right font-medium">Taken</th>
+                    <th className="pb-2 text-right font-medium">Remaining</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {timeOff.byType.map((t) => (
+                    <tr key={t.typeName} className="border-b last:border-0">
+                      <td className="py-2">{t.typeName}</td>
+                      <td className="py-2 text-right text-muted-foreground">
+                        {t.allocated} {t.unit.toLowerCase()}
+                      </td>
+                      <td className="py-2 text-right text-muted-foreground">
+                        {t.taken} {t.unit.toLowerCase()}
+                      </td>
+                      <td className="py-2 text-right font-medium">
+                        {t.remaining} {t.unit.toLowerCase()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

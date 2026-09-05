@@ -69,6 +69,40 @@ export async function getDashboard(filters: DashboardFilters) {
   const pendingRequests = requests.filter((r) => r.status === 'TO_APPROVE').length
   const approvedDays = approvedRequests.reduce((sum, r) => sum + toNumber(r.duration), 0)
 
+  // Aggregate leave balances by type across all employees in scope
+  const types = await prisma.timeOffType.findMany({ orderBy: { name: 'asc' } })
+  const byType = await Promise.all(
+    types.map(async (type) => {
+      const [allocatedSum, takenSum] = await Promise.all([
+        prisma.allocation.aggregate({
+          where: {
+            typeId: type.id,
+            status: 'APPROVED',
+            employee: employeeWhere,
+          },
+          _sum: { amount: true },
+        }),
+        prisma.timeOffRequest.aggregate({
+          where: {
+            typeId: type.id,
+            status: 'APPROVED',
+            employee: employeeWhere,
+          },
+          _sum: { duration: true },
+        }),
+      ])
+      const allocated = toNumber(allocatedSum._sum.amount)
+      const taken = toNumber(takenSum._sum.duration)
+      return {
+        typeName: type.name,
+        unit: type.unit,
+        allocated,
+        taken,
+        remaining: allocated - taken,
+      }
+    }),
+  )
+
   const attendanceByStatus = { PRESENT: 0, LATE: 0, ABSENT: 0, OVERTIME: 0 }
   let missingCheckouts = 0
   for (const a of attendance) {
@@ -128,6 +162,7 @@ export async function getDashboard(filters: DashboardFilters) {
     timeOff: {
       approvedDays,
       pendingRequests,
+      byType,
     },
     attendance: {
       byStatus: attendanceByStatus,
