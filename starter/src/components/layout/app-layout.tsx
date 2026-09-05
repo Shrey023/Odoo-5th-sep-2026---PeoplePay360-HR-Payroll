@@ -1,4 +1,4 @@
-import { LayoutDashboard, LogOut, Package } from 'lucide-react'
+import { Calculator, LayoutDashboard, LogOut, Users } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils'
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/items', label: 'Items', icon: Package },
+  { to: '/employees', label: 'Employees', icon: Users },
+  { to: '/salary-structures', label: 'Salary Structures', icon: Calculator },
 ]
 
 export function AppLayout() {
@@ -16,7 +17,7 @@ export function AppLayout() {
   return (
     <div className="flex min-h-svh">
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar p-4 md:flex">
-        <div className="mb-6 px-2 text-lg font-semibold">Starter Kit</div>
+        <div className="mb-6 px-2 text-lg font-semibold">PeoplePay360</div>
         <nav className="flex flex-1 flex-col gap-1">
           {nav.map(({ to, label, icon: Icon }) => (
             <Link
@@ -37,7 +38,9 @@ export function AppLayout() {
         <div className="mt-auto border-t pt-4">
           <div className="mb-2 px-2 text-sm">
             <div className="font-medium">{user?.name}</div>
-            <div className="text-xs text-muted-foreground capitalize">{user?.role}</div>
+            <div className="text-xs text-muted-foreground">
+              {user?.roles.map((r) => r.replace(/_/g, ' ')).join(', ').toLowerCase()}
+            </div>
           </div>
           <Button variant="ghost" size="sm" className="w-full justify-start" onClick={logout}>
             <LogOut className="size-4" /> Logout
