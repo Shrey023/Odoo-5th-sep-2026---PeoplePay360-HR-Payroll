@@ -26,6 +26,7 @@ type NavGroup = {
   items: NavItem[]
   adminOnly?: boolean
   hrOnly?: boolean
+  employeeOnly?: boolean
 }
 type NavLink = {
   to: string
@@ -33,6 +34,7 @@ type NavLink = {
   icon: React.ElementType
   adminOnly?: boolean
   hrOnly?: boolean
+  employeeOnly?: boolean
 }
 type NavEntry = NavGroup | NavLink
 
@@ -42,9 +44,9 @@ function isNavGroup(e: NavEntry): e is NavGroup {
 
 const nav: NavEntry[] = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, hrOnly: true },
-  { to: '/my-dashboard', label: 'My Dashboard', icon: LayoutDashboard },
-  { to: '/my-payslips', label: 'My Payslips', icon: Receipt },
-  { to: '/my-profile', label: 'My Profile', icon: Users },
+  { to: '/my-dashboard', label: 'My Dashboard', icon: LayoutDashboard, employeeOnly: true },
+  { to: '/my-payslips', label: 'My Payslips', icon: Receipt, employeeOnly: true },
+  { to: '/my-profile', label: 'My Profile', icon: Users, employeeOnly: true },
   {
     label: 'Employees',
     icon: Users,
@@ -129,7 +131,7 @@ export function AppLayout() {
             if (!isNavGroup(entry)) {
               if (entry.adminOnly && !hasRole('ADMIN')) return null
               if (entry.hrOnly && isEmployee) return null
-              if (!entry.hrOnly && !['My Dashboard', 'My Payslips', 'My Profile'].includes(entry.label) && isEmployee) return null
+              if (entry.employeeOnly && isHR) return null
               const Icon = entry.icon
               return (
                 <Link
@@ -150,6 +152,7 @@ export function AppLayout() {
 
             if (entry.adminOnly && !hasRole('ADMIN')) return null
             if (entry.hrOnly && isEmployee) return null
+            if (entry.employeeOnly && isHR) return null
             const Icon = entry.icon
             const isOpen = open.includes(entry.label)
             const active = groupActive(pathname, entry.items)

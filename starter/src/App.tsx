@@ -30,7 +30,7 @@ import { WorkingSchedulesPage } from '@/pages/working-schedules'
 function RootRedirect() {
   const { hasRole } = useAuth()
   const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
-  return <Navigate to={isHR ? '/' : '/my-dashboard'} replace />
+  return <Navigate to={isHR ? '/dashboard' : '/my-dashboard'} replace />
 }
 
 export default function App() {
