@@ -21,8 +21,11 @@ export interface DashboardData {
 }
 
 export const dashboardApi = {
-  get: (employeeType?: string) => {
-    const qs = employeeType ? `?employeeType=${employeeType}` : ''
+  get: (filters?: { employeeType?: string; departmentId?: string }) => {
+    const params = new URLSearchParams()
+    if (filters?.employeeType) params.set('employeeType', filters.employeeType)
+    if (filters?.departmentId) params.set('departmentId', filters.departmentId)
+    const qs = params.toString() ? `?${params.toString()}` : ''
     return http<DashboardData>(`/dashboard${qs}`)
   },
 }
