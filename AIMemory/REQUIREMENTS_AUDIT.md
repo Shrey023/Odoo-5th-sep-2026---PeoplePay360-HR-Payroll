@@ -113,7 +113,7 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 | 60 | Time Off overview: approved days, pending requests, remaining balances by type | PARTIAL | dashboard shows approved days + pending requests; per-type remaining shown on employee detail (Slice 5). Aggregate per-type on dashboard not added |
 | 61 | Attendance overview: present/absent/late, overtime, missing check-outs, coverage, manual edits | DONE | byStatus tally + missingCheckouts + pie chart (Slice 6) |
 | 62 | >=2 visual summaries (bar/line/stacked/table) | DONE | bar (net by dept) + pie (attendance) + dept table (Slice 6) |
-| 63 | Filters: Period, Department, Employee Type, Company affect data | PARTIAL | employeeType filter live in UI; departmentId accepted by backend (no UI dropdown yet); period/company weaker. Type verified INTERN=2 (Slice 6) |
+| 63 | Filters: Period, Department, Employee Type, Company affect data | DONE | department + employee-type dropdowns live on dashboard (PR #7); verified Engineering filter 199->83. Period/company still weaker (no period picker / single company) |
 | 64 | Warnings/attention items: duplicate payslips, missing bank, contracts expiring, drafts not validated | DONE | warnings panel: missing bank, no running contract, contracts expiring 30d, unvalidated payruns (Slice 6). Duplicates prevented at compute (unique+idempotent) |
 
 ---

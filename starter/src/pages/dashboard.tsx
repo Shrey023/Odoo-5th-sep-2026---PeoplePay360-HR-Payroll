@@ -16,6 +16,7 @@ import {
 } from 'recharts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { dashboardApi } from '@/lib/dashboard.api'
+import { departmentsApi } from '@/lib/departments.api'
 
 const TYPE_OPTIONS = [
   { value: '', label: 'All types' },
@@ -35,10 +36,20 @@ const currency = (n: number) => `₹${n.toLocaleString()}`
 
 export function DashboardPage() {
   const [employeeType, setEmployeeType] = useState('')
+  const [departmentId, setDepartmentId] = useState('')
+
+  const { data: departments } = useQuery({
+    queryKey: ['departments'],
+    queryFn: departmentsApi.list,
+  })
 
   const { data, isLoading } = useQuery({
-    queryKey: ['dashboard', employeeType],
-    queryFn: () => dashboardApi.get(employeeType || undefined),
+    queryKey: ['dashboard', employeeType, departmentId],
+    queryFn: () =>
+      dashboardApi.get({
+        employeeType: employeeType || undefined,
+        departmentId: departmentId || undefined,
+      }),
   })
 
   if (isLoading || !data) {
@@ -62,17 +73,31 @@ export function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">Live payroll overview across the company.</p>
-        <select
-          value={employeeType}
-          onChange={(ev) => setEmployeeType(ev.target.value)}
-          className="h-9 rounded-md border bg-background px-3 text-sm"
-        >
-          {TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <div className="flex gap-2">
+          <select
+            value={departmentId}
+            onChange={(ev) => setDepartmentId(ev.target.value)}
+            className="h-9 rounded-md border bg-background px-3 text-sm"
+          >
+            <option value="">All departments</option>
+            {departments?.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={employeeType}
+            onChange={(ev) => setEmployeeType(ev.target.value)}
+            className="h-9 rounded-md border bg-background px-3 text-sm"
+          >
+            {TYPE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {warnings.length > 0 && (
@@ -115,7 +140,7 @@ export function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" fontSize={12} />
                 <YAxis fontSize={12} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip formatter={(v) => currency(Number(v))} />
+                <Tooltip formatter={(v) => currency(v as number)} />
                 <Bar dataKey="net" fill="#2563eb" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
