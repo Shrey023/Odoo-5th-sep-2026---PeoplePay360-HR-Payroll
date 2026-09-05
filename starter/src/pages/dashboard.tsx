@@ -6,7 +6,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Line,
   LineChart,
   Pie,
@@ -289,20 +288,46 @@ export function DashboardPage() {
               </p>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie data={attendanceData} dataKey="value" nameKey="name" outerRadius={70} label>
-                      {attendanceData.map((d) => (
-                        <Cell key={d.name} fill={ATTENDANCE_COLORS[d.name] ?? '#94a3b8'} />
-                      ))}
-                    </Pie>
-                    <Legend />
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                  <div>Missing check-outs: {attendance.missingCheckouts}</div>
-                  <div>Attendance coverage: {kpis.attendanceHealth}%</div>
+                <div className="flex items-center gap-4">
+                  <ResponsiveContainer width={140} height={140}>
+                    <PieChart>
+                      <Pie
+                        data={attendanceData}
+                        dataKey="value"
+                        nameKey="name"
+                        innerRadius={38}
+                        outerRadius={62}
+                        strokeWidth={2}
+                      >
+                        {attendanceData.map((d) => (
+                          <Cell key={d.name} fill={ATTENDANCE_COLORS[d.name] ?? '#94a3b8'} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(v: number) => [v, 'Records']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex-1 space-y-2">
+                    {attendanceData.map((d) => {
+                      const total = attendanceData.reduce((s, x) => s + x.value, 0)
+                      const pct = total > 0 ? Math.round((d.value / total) * 100) : 0
+                      return (
+                        <div key={d.name} className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <span className="size-2.5 rounded-full flex-shrink-0" style={{ background: ATTENDANCE_COLORS[d.name] ?? '#94a3b8' }} />
+                            <span className="text-xs text-muted-foreground capitalize">{d.name.toLowerCase()}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold">{d.value}</span>
+                            <span className="text-xs text-muted-foreground w-8 text-right">{pct}%</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div className="mt-3 flex gap-4 border-t pt-3 text-xs text-muted-foreground">
+                  <span>Missing check-outs: <strong>{attendance.missingCheckouts}</strong></span>
+                  <span>Coverage: <strong>{kpis.attendanceHealth}%</strong></span>
                 </div>
               </>
             )}
