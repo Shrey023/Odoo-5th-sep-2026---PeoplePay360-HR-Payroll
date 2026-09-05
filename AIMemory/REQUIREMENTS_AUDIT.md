@@ -21,16 +21,16 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 6 | Required views: Kanban, List, Form | TODO | Frontend, Slice 1 |
-| 7 | Kanban card + List row open the SAME Employee Form | TODO | Frontend |
-| 8 | Employee Form = central hub via smart buttons (Contracts, Attendance, Time Off, Allocations) w/ counts | TODO | Frontend, needs count endpoints |
+| 6 | Required views: Kanban, List, Form | DONE | employees.tsx Kanban/List toggle + employee-detail Form (Slice 1) |
+| 7 | Kanban card + List row open the SAME Employee Form | DONE | both link to /employees/:id (Slice 1) |
+| 8 | Employee Form = central hub via smart buttons (Contracts, Attendance, Time Off, Allocations) w/ counts | DONE | smartButtons on employee-detail w/ live counts from getById (Slice 1) |
 | 9 | Capture dept, manager, schedule, job position, status | DONE | all fields present |
 
 ## Contract
 
 | # | Requirement | Status | Notes |
 |---|---|---|---|
-| 10 | List + Form views | TODO | Slice 2 |
+| 10 | List + Form views | DONE | Contracts table on employee-detail + contract-form-dialog (Slice 2) |
 | 11 | Employee can have multiple contracts over time (history retained) | DONE | `Contract[]` on employee |
 | 12 | Payroll uses contract applicable to the period (Running) | DONE | `resolveForPeriod` in contract.service (Slice 2); payrun consumes it Slice 4 |
 | 13 | One employee must NOT have multiple Running contracts for same period | DONE | `assertNoRunningOverlap` on create/update -> 409 (Slice 2) |
@@ -91,8 +91,8 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 |---|---|---|---|
 | 44 | NEW opens wizard, does NOT create payrun immediately | DONE | 2-step create dialog; create only on final submit (Slice 4) |
 | 45 | Step 1: scope = employee type, salary structure, period | DONE | wizard step 1 captures all three; Payrun.employeeType optional filter (Slice 4) |
-| 46 | Continue -> employee selection (no payrun yet) | PARTIAL | wizard step 2 = review (not per-employee checkboxes); scope is employeeType-filtered not hand-picked. **GAP: no explicit employee-selection list. Acceptable-scope for demo; note for judges.** |
-| 47 | Create Payrun -> batch w/ ONLY selected employees | PARTIAL | computes ALL in-scope (ACTIVE + type filter), not a hand-picked subset. Employees with no running contract auto-skipped. **Same gap as #46.** |
+| 46 | Continue -> employee selection (no payrun yet) | DONE | wizard step 2 = employee checkbox list (pre-checked in-scope, select-all/clear); payrun created only on submit. Payrun.employeeIds persists selection |
+| 47 | Create Payrun -> batch w/ ONLY selected employees | DONE | scopeWhere filters to Payrun.employeeIds when set; verified 2-of-4 picked -> exactly 2 payslips. Empty selection = all in-scope (backward compat) |
 | 48 | Each selected employee gets a Payslip linked to Payrun | DONE | compute persists Payslip per in-scope employee (Slice 4) |
 | 49 | Compute uses applicable contract + selected structure | DONE | compute resolves RUNNING contract for period + structure rules -> engine (Slice 4) |
 | 50 | Payslip shows Basic, Allowances, Deductions, Gross, Net + worked days | DONE | PayslipLines + gross/deductions/net persisted; workedDays defaults 0 (Slice 5 attendance feeds it) |

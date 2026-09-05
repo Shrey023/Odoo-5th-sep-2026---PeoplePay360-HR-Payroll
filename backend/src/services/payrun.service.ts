@@ -42,6 +42,7 @@ export async function create(input: CreatePayrunInput) {
       name: input.name,
       structureId: input.structureId,
       employeeType: input.employeeType ?? null,
+      employeeIds: input.employeeIds ?? [],
       periodStart: input.periodStart,
       periodEnd: input.periodEnd,
     },
@@ -61,8 +62,10 @@ export async function remove(id: string) {
   await prisma.payrun.delete({ where: { id } })
 }
 
-// Which employees fall in scope: active, optionally filtered by employee type.
-function scopeWhere(employeeType: string | null): Prisma.EmployeeWhereInput {
+// Which employees fall in scope: the hand-picked selection if one was made,
+// otherwise all active employees optionally filtered by employee type.
+function scopeWhere(employeeType: string | null, employeeIds: string[]): Prisma.EmployeeWhereInput {
+  if (employeeIds.length > 0) return { id: { in: employeeIds } }
   const where: Prisma.EmployeeWhereInput = { status: 'ACTIVE' }
   if (employeeType) where.employeeType = employeeType as Prisma.EnumEmployeeTypeFilter['equals']
   return where
@@ -97,7 +100,9 @@ export async function compute(id: string) {
   if (!structure) throw new HttpError(404, 'Salary structure not found')
   const engineRules = toEngineRules(structure.rules)
 
-  const employees = await prisma.employee.findMany({ where: scopeWhere(payrun.employeeType) })
+  const employees = await prisma.employee.findMany({
+    where: scopeWhere(payrun.employeeType, payrun.employeeIds),
+  })
 
   const computed: {
     employeeId: string

@@ -322,6 +322,7 @@ model Payrun {
   structureId  String          @db.Uuid
   structure    SalaryStructure @relation(fields: [structureId], references: [id])
   employeeType EmployeeType?
+  employeeIds  String[]        @db.Uuid
   periodStart  DateTime
   periodEnd    DateTime
   status       PayrunStatus    @default(DRAFT)

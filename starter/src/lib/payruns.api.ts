@@ -52,6 +52,7 @@ export interface CreatePayrunInput {
   name: string
   structureId: string
   employeeType?: string | null
+  employeeIds?: string[]
   periodStart: string
   periodEnd: string
 }

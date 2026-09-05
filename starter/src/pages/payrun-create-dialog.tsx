@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { employeesApi } from '@/lib/employees.api'
 import { payrunsApi } from '@/lib/payruns.api'
 import { salaryApi } from '@/lib/salary.api'
 
@@ -42,9 +43,16 @@ export function PayrunCreateDialog({ open, onOpenChange }: Props) {
   const navigate = useNavigate()
   const [step, setStep] = useState<1 | 2>(1)
 
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
   const { data: structures = [] } = useQuery({
     queryKey: ['salary-structures'],
     queryFn: () => salaryApi.listStructures(),
+  })
+
+  const { data: employees = [] } = useQuery({
+    queryKey: ['employees', 'ACTIVE'],
+    queryFn: () => employeesApi.list({ status: 'ACTIVE' }),
   })
 
   const {
@@ -59,6 +67,7 @@ export function PayrunCreateDialog({ open, onOpenChange }: Props) {
   function close() {
     onOpenChange(false)
     setStep(1)
+    setSelected(new Set())
     reset()
   }
 
@@ -68,6 +77,7 @@ export function PayrunCreateDialog({ open, onOpenChange }: Props) {
         name: v.name,
         structureId: v.structureId,
         employeeType: v.employeeType || null,
+        employeeIds: [...selected],
         periodStart: v.periodStart,
         periodEnd: v.periodEnd,
       }),
@@ -80,13 +90,27 @@ export function PayrunCreateDialog({ open, onOpenChange }: Props) {
     onError: (e: Error) => toast.error(e.message),
   })
 
-  async function next() {
-    const okStep = await trigger(['name', 'structureId', 'periodStart', 'periodEnd'])
-    if (okStep) setStep(2)
-  }
-
   const v = getValues()
   const structureName = structures.find((s) => s.id === v.structureId)?.name
+  const inScope = employees.filter((e) => !v.employeeType || e.employeeType === v.employeeType)
+
+  async function next() {
+    const okStep = await trigger(['name', 'structureId', 'periodStart', 'periodEnd'])
+    if (!okStep) return
+    const type = getValues('employeeType')
+    const scoped = employees.filter((e) => !type || e.employeeType === type)
+    setSelected(new Set(scoped.map((e) => e.id)))
+    setStep(2)
+  }
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const nextSet = new Set(prev)
+      if (nextSet.has(id)) nextSet.delete(id)
+      else nextSet.add(id)
+      return nextSet
+    })
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(true) : close())}>
@@ -154,15 +178,62 @@ export function PayrunCreateDialog({ open, onOpenChange }: Props) {
           )}
 
           {step === 2 && (
-            <div className="space-y-2 text-sm">
-              <p className="text-muted-foreground">Review before creating:</p>
-              <Review label="Name" value={v.name} />
-              <Review label="Structure" value={structureName ?? '-'} />
-              <Review label="Employee Type" value={v.employeeType || 'All types'} />
-              <Review label="Period" value={`${v.periodStart} to ${v.periodEnd}`} />
-              <p className="pt-2 text-xs text-muted-foreground">
-                Payslips are computed after creation, from each employee's running contract.
-              </p>
+            <div className="space-y-4 text-sm">
+              <div className="space-y-1">
+                <Review label="Name" value={v.name} />
+                <Review label="Structure" value={structureName ?? '-'} />
+                <Review label="Employee Type" value={v.employeeType || 'All types'} />
+                <Review label="Period" value={`${v.periodStart} to ${v.periodEnd}`} />
+              </div>
+
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <Label>Employees ({selected.size} selected)</Label>
+                  <div className="flex gap-3 text-xs">
+                    <button
+                      type="button"
+                      className="text-primary hover:underline"
+                      onClick={() => setSelected(new Set(inScope.map((e) => e.id)))}
+                    >
+                      Select all
+                    </button>
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:underline"
+                      onClick={() => setSelected(new Set())}
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div className="max-h-56 space-y-1 overflow-auto rounded-md border p-2">
+                  {inScope.length === 0 ? (
+                    <p className="p-2 text-xs text-muted-foreground">
+                      No active employees for this type.
+                    </p>
+                  ) : (
+                    inScope.map((e) => (
+                      <label
+                        key={e.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 hover:bg-accent"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected.has(e.id)}
+                          onChange={() => toggle(e.id)}
+                        />
+                        <span className="flex-1">{e.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {e.employeeType.replace('_', ' ').toLowerCase()}
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+                <p className="pt-2 text-xs text-muted-foreground">
+                  Only the selected employees get a payslip, computed from their running contract.
+                </p>
+              </div>
             </div>
           )}
 
@@ -181,7 +252,7 @@ export function PayrunCreateDialog({ open, onOpenChange }: Props) {
                 <Button type="button" variant="outline" onClick={() => setStep(1)}>
                   Back
                 </Button>
-                <Button type="submit" disabled={create.isPending}>
+                <Button type="submit" disabled={create.isPending || selected.size === 0}>
                   Create payrun
                 </Button>
               </>
