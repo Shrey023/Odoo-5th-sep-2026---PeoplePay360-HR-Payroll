@@ -3,6 +3,34 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+function computePayslipLines(wage: number, rules: { code: string; name: string; category: string; sequence: number; computeType: string; amount: string | null; percent: string | null; percentBase: string | null; expression: string | null }[]) {
+  const cats: Record<string, number> = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 }
+  const lines: { ruleCode: string; ruleName: string; category: string; sequence: number; amount: number }[] = []
+  for (const rule of rules) {
+    let amount = 0
+    if (rule.computeType === 'FIXED') {
+      amount = Number(rule.amount ?? 0)
+    } else if (rule.computeType === 'PERCENTAGE') {
+      const base = rule.percentBase === 'CONTRACT_WAGE' ? wage : (cats[rule.percentBase ?? ''] ?? 0)
+      amount = (base * Number(rule.percent ?? 0)) / 100
+    } else if (rule.computeType === 'FORMULA' && rule.expression) {
+      const fn = new Function('categories', `"use strict"; return (${rule.expression});`)
+      amount = fn(cats)
+    }
+    amount = Math.round((amount + Number.EPSILON) * 100) / 100
+    if (rule.category === 'BASIC' || rule.category === 'ALLOWANCE' || rule.category === 'DEDUCTION') {
+      cats[rule.category] += amount
+    } else {
+      cats[rule.category] = amount
+    }
+    lines.push({ ruleCode: rule.code, ruleName: rule.name, category: rule.category, sequence: rule.sequence, amount })
+  }
+  const gross = Math.round((cats.GROSS || cats.BASIC + cats.ALLOWANCE) * 100) / 100
+  const deductions = Math.round(cats.DEDUCTION * 100) / 100
+  const net = Math.round((cats.NET || gross - deductions) * 100) / 100
+  return { lines, gross, deductions, net }
+}
+
 async function main() {
   console.log('Seeding PeoplePay360...')
 
@@ -42,26 +70,37 @@ async function main() {
     ),
   )
 
-  // Standard week: Mon-Fri, 9-6 with 1h break = 8h/day, 40h/week.
   const scheduleLines = [0, 1, 2, 3, 4].map((d) => ({
-    dayOfWeek: d,
-    startTime: '09:00',
-    endTime: '18:00',
-    breakMinutes: 60,
+    dayOfWeek: d, startTime: '09:00', endTime: '18:00', breakMinutes: 60,
   }))
   const schedule = await prisma.workingSchedule.create({
     data: {
       name: 'Standard 40h/week',
       calendarType: 'Standard',
       companyId: company.id,
-      daysPerWeek: scheduleLines.length,
+      daysPerWeek: 5,
       weeklyHours: 40,
       lines: { create: scheduleLines },
     },
   })
 
+  const flexSchedule = await prisma.workingSchedule.create({
+    data: {
+      name: 'Flexible 35h/week',
+      calendarType: 'Standard',
+      companyId: company.id,
+      daysPerWeek: 5,
+      weeklyHours: 35,
+      lines: {
+        create: [0, 1, 2, 3, 4].map((d) => ({
+          dayOfWeek: d, startTime: '10:00', endTime: '17:00', breakMinutes: 0,
+        })),
+      },
+    },
+  })
+
   const structure = await prisma.salaryStructure.create({ data: { name: 'Regular Salary' } })
-  await prisma.salaryRule.createMany({
+  const rules = await prisma.salaryRule.createManyAndReturn({
     data: [
       { structureId: structure.id, name: 'Basic Salary', code: 'BASIC', category: 'BASIC', sequence: 10, computeType: 'PERCENTAGE', percent: '50', percentBase: 'CONTRACT_WAGE' },
       { structureId: structure.id, name: 'House Rent Allowance', code: 'HRA', category: 'ALLOWANCE', sequence: 20, computeType: 'PERCENTAGE', percent: '20', percentBase: 'BASIC' },
@@ -73,200 +112,227 @@ async function main() {
     ],
   })
 
-  // The four named demo employees the walkthrough relies on.
-  // Neha has no bank account on purpose (drives the payroll warning demo).
-  const employeesData: Array<{
-    name: string
-    workEmail: string
-    jobPosition: string
-    departmentId: string
-    userId?: string
-    wage: string
-    bankAccount: string | null
-  }> = [
-    {
-      name: 'Aarav Mehta',
-      workEmail: 'aarav@oxp.com',
-      jobPosition: 'Payroll Specialist',
-      departmentId: finance.id,
-      userId: aaravUser.id,
-      wage: '85000',
-      bankAccount: 'HDFC-0001',
-    },
-    {
-      name: 'Sara Khan',
-      workEmail: 'sara@oxp.com',
-      jobPosition: 'HR Officer',
-      departmentId: hr.id,
-      wage: '95000',
-      bankAccount: 'ICICI-0002',
-    },
-    {
-      name: 'John Dsouza',
-      workEmail: 'john@oxp.com',
-      jobPosition: 'Developer',
-      departmentId: engineering.id,
-      wage: '78000',
-      bankAccount: 'SBI-0003',
-    },
-    {
-      name: 'Neha Patel',
-      workEmail: 'neha@oxp.com',
-      jobPosition: 'Recruiter',
-      departmentId: hr.id,
-      wage: '60000',
-      bankAccount: null,
-    },
+  // 15 employees across 3 departments. Neha has no bank (drives warning demo).
+  const employeesData = [
+    // Finance (5)
+    { name: 'Aarav Mehta',    email: 'aarav@oxp.com',    job: 'Payroll Specialist',  dept: finance,     wage: 85000,  bank: 'HDFC-0001', userId: aaravUser.id, type: 'FULL_TIME', sched: schedule },
+    { name: 'Priya Sharma',   email: 'priya@oxp.com',    job: 'Finance Analyst',     dept: finance,     wage: 92000,  bank: 'ICICI-0010', userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Rohan Verma',    email: 'rohan@oxp.com',    job: 'Accounts Manager',    dept: finance,     wage: 110000, bank: 'HDFC-0011', userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Divya Nair',     email: 'divya@oxp.com',    job: 'Tax Consultant',      dept: finance,     wage: 75000,  bank: 'SBI-0012',  userId: null, type: 'CONTRACTOR', sched: flexSchedule },
+    { name: 'Karan Joshi',    email: 'karan@oxp.com',    job: 'Financial Controller',dept: finance,     wage: 130000, bank: 'AXIS-0013', userId: null, type: 'FULL_TIME', sched: schedule },
+    // HR (5)
+    { name: 'Sara Khan',      email: 'sara@oxp.com',     job: 'HR Officer',          dept: hr,          wage: 95000,  bank: 'ICICI-0002', userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Neha Patel',     email: 'neha@oxp.com',     job: 'Recruiter',           dept: hr,          wage: 60000,  bank: null,         userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Amit Singh',     email: 'amit@oxp.com',     job: 'HR Business Partner', dept: hr,          wage: 88000,  bank: 'HDFC-0014', userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Pooja Iyer',     email: 'pooja@oxp.com',    job: 'L&D Specialist',      dept: hr,          wage: 72000,  bank: 'SBI-0015',  userId: null, type: 'FULL_TIME', sched: flexSchedule },
+    { name: 'Rahul Gupta',    email: 'rahulg@oxp.com',   job: 'Talent Acquisition',  dept: hr,          wage: 65000,  bank: 'ICICI-0016', userId: null, type: 'INTERN', sched: flexSchedule },
+    // Engineering (5)
+    { name: 'John Dsouza',    email: 'john@oxp.com',     job: 'Senior Developer',    dept: engineering, wage: 120000, bank: 'SBI-0003',  userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Ananya Roy',     email: 'ananya@oxp.com',   job: 'Backend Engineer',    dept: engineering, wage: 105000, bank: 'HDFC-0017', userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Vikram Bose',    email: 'vikram@oxp.com',   job: 'DevOps Engineer',     dept: engineering, wage: 98000,  bank: 'AXIS-0018', userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Meera Pillai',   email: 'meera@oxp.com',    job: 'QA Engineer',         dept: engineering, wage: 82000,  bank: 'SBI-0019',  userId: null, type: 'FULL_TIME', sched: schedule },
+    { name: 'Siddharth Das',  email: 'sid@oxp.com',      job: 'Frontend Developer',  dept: engineering, wage: 90000,  bank: 'HDFC-0020', userId: null, type: 'CONTRACTOR', sched: flexSchedule },
   ]
 
   let contractSeq = 1
+  const createdEmployees: { id: string; name: string; email: string; wage: number }[] = []
+
   for (const e of employeesData) {
     const emp = await prisma.employee.create({
       data: {
         name: e.name,
-        workEmail: e.workEmail,
-        jobPosition: e.jobPosition,
-        departmentId: e.departmentId,
+        workEmail: e.email,
+        jobPosition: e.job,
+        departmentId: e.dept.id,
         companyId: company.id,
-        scheduleId: schedule.id,
+        scheduleId: e.sched.id,
         userId: e.userId ?? null,
-        bankAccount: e.bankAccount,
+        bankAccount: e.bank,
+        employeeType: e.type as any,
       },
     })
+    const seq = String(contractSeq++).padStart(3, '0')
     await prisma.contract.create({
       data: {
-        reference: `CON/2026/00${contractSeq++}`,
+        reference: `CON/2026/${seq}`,
         employeeId: emp.id,
-        jobPosition: e.jobPosition,
-        employeeType: 'FULL_TIME',
-        departmentId: e.departmentId,
+        jobPosition: e.job,
+        employeeType: e.type as any,
+        departmentId: e.dept.id,
         startDate: new Date('2026-01-01'),
         endDate: new Date('2026-12-31'),
-        wage: e.wage,
+        wage: String(e.wage),
         status: 'RUNNING',
         structureId: structure.id,
-        scheduleId: schedule.id,
+        scheduleId: e.sched.id,
       },
     })
+    createdEmployees.push({ id: emp.id, name: e.name, email: e.email, wage: e.wage })
   }
 
+  // Time off types
   const annual = await prisma.timeOffType.create({
     data: { name: 'Annual Leave', unit: 'DAYS', requiresAllocation: true, approvalRequired: true, color: '#1971c2' },
+  })
+  const sick = await prisma.timeOffType.create({
+    data: { name: 'Sick Leave', unit: 'DAYS', requiresAllocation: true, approvalRequired: false, color: '#e03131' },
   })
   await prisma.timeOffType.create({
     data: { name: 'Unpaid Leave', unit: 'DAYS', requiresAllocation: false, approvalRequired: true, color: '#e8590c' },
   })
-
-  const aarav = await prisma.employee.findUniqueOrThrow({ where: { workEmail: 'aarav@oxp.com' } })
-  await prisma.allocation.create({
-    data: {
-      employeeId: aarav.id,
-      typeId: annual.id,
-      amount: '20',
-      validFrom: new Date('2026-01-01'),
-      validTo: new Date('2026-12-31'),
-      status: 'APPROVED',
-    },
-  })
-  await prisma.timeOffRequest.create({
-    data: {
-      employeeId: aarav.id,
-      typeId: annual.id,
-      startDate: new Date('2026-02-10'),
-      endDate: new Date('2026-02-11'),
-      duration: '2',
-      status: 'APPROVED',
-    },
+  await prisma.timeOffType.create({
+    data: { name: 'Compensatory Off', unit: 'DAYS', requiresAllocation: true, approvalRequired: true, color: '#2f9e44' },
   })
 
-  await prisma.attendance.createMany({
-    data: [
-      { employeeId: aarav.id, checkIn: new Date('2026-02-02T09:05:00'), checkOut: new Date('2026-02-02T18:10:00'), workedHours: '8.08', status: 'PRESENT' },
-      { employeeId: aarav.id, checkIn: new Date('2026-02-03T09:32:00'), checkOut: new Date('2026-02-03T18:02:00'), workedHours: '7.5', status: 'LATE' },
-    ],
-  })
-
-  // Demo payrun: August 2026, all 4 employees, status PAID so dashboard shows real numbers.
-  const rules = await prisma.salaryRule.findMany({
-    where: { structureId: structure.id },
-    orderBy: { sequence: 'asc' },
-  })
-
-  const payrun = await prisma.payrun.create({
-    data: {
-      name: 'August 2026',
-      structureId: structure.id,
-      periodStart: new Date('2026-08-01'),
-      periodEnd: new Date('2026-08-31'),
-      status: 'PAID',
-      employeeIds: [],
-    },
-  })
-
-  const allEmployees = await prisma.employee.findMany({ where: { status: 'ACTIVE' } })
-
-  for (const emp of allEmployees) {
-    const contract = await prisma.contract.findFirst({
-      where: { employeeId: emp.id, status: 'RUNNING' },
-    })
-    if (!contract) continue
-
-    const wage = Number(contract.wage)
-    const cats: Record<string, number> = { BASIC: 0, ALLOWANCE: 0, GROSS: 0, DEDUCTION: 0, NET: 0 }
-    const lines: { ruleCode: string; ruleName: string; category: string; sequence: number; amount: number }[] = []
-
-    for (const rule of rules) {
-      let amount = 0
-      if (rule.computeType === 'FIXED') {
-        amount = Number(rule.amount ?? 0)
-      } else if (rule.computeType === 'PERCENTAGE') {
-        const base = rule.percentBase === 'CONTRACT_WAGE' ? wage : (cats[rule.percentBase ?? ''] ?? 0)
-        amount = (base * Number(rule.percent ?? 0)) / 100
-      } else if (rule.computeType === 'FORMULA' && rule.expression) {
-        const fn = new Function('categories', `"use strict"; return (${rule.expression});`)
-        amount = fn(cats)
-      }
-      amount = Math.round((amount + Number.EPSILON) * 100) / 100
-      if (rule.category === 'BASIC' || rule.category === 'ALLOWANCE' || rule.category === 'DEDUCTION') {
-        cats[rule.category] += amount
-      } else {
-        cats[rule.category] = amount
-      }
-      lines.push({ ruleCode: rule.code, ruleName: rule.name, category: rule.category, sequence: rule.sequence, amount })
-    }
-
-    const gross = Math.round((cats.GROSS || cats.BASIC + cats.ALLOWANCE) * 100) / 100
-    const deductions = Math.round(cats.DEDUCTION * 100) / 100
-    const net = Math.round((cats.NET || gross - deductions) * 100) / 100
-
-    await prisma.payslip.create({
+  // Allocations - all employees get annual leave, most get sick leave
+  for (const emp of createdEmployees) {
+    await prisma.allocation.create({
       data: {
-        payrunId: payrun.id,
         employeeId: emp.id,
-        contractId: contract.id,
-        periodStart: payrun.periodStart,
-        periodEnd: payrun.periodEnd,
-        gross,
-        deductions,
-        net,
-        status: 'PAID',
-        workedDays: '23',
-        lines: {
-          create: lines.map((l) => ({
-            ruleCode: l.ruleCode,
-            ruleName: l.ruleName,
-            category: l.category as any,
-            sequence: l.sequence,
-            amount: l.amount,
-          })),
-        },
+        typeId: annual.id,
+        amount: '21',
+        validFrom: new Date('2026-01-01'),
+        validTo: new Date('2026-12-31'),
+        status: 'APPROVED',
+      },
+    })
+    await prisma.allocation.create({
+      data: {
+        employeeId: emp.id,
+        typeId: sick.id,
+        amount: '10',
+        validFrom: new Date('2026-01-01'),
+        validTo: new Date('2026-12-31'),
+        status: 'APPROVED',
       },
     })
   }
 
+  // A couple DRAFT allocations for realism
+  await prisma.allocation.create({
+    data: {
+      employeeId: createdEmployees[2].id,
+      typeId: annual.id,
+      amount: '5',
+      validFrom: new Date('2026-07-01'),
+      validTo: new Date('2026-12-31'),
+      status: 'DRAFT',
+    },
+  })
+
+  // Time off requests - varied statuses
+  const requestsData = [
+    { emp: 'aarav@oxp.com', type: annual, start: '2026-02-10', end: '2026-02-12', dur: '3', status: 'APPROVED' },
+    { emp: 'sara@oxp.com',  type: annual, start: '2026-03-05', end: '2026-03-07', dur: '3', status: 'APPROVED' },
+    { emp: 'john@oxp.com',  type: annual, start: '2026-04-14', end: '2026-04-18', dur: '5', status: 'APPROVED' },
+    { emp: 'priya@oxp.com', type: annual, start: '2026-05-01', end: '2026-05-02', dur: '2', status: 'APPROVED' },
+    { emp: 'rohan@oxp.com', type: sick,   start: '2026-06-10', end: '2026-06-11', dur: '2', status: 'APPROVED' },
+    { emp: 'ananya@oxp.com',type: sick,   start: '2026-07-03', end: '2026-07-03', dur: '1', status: 'APPROVED' },
+    { emp: 'amit@oxp.com',  type: annual, start: '2026-09-15', end: '2026-09-17', dur: '3', status: 'TO_APPROVE' },
+    { emp: 'meera@oxp.com', type: annual, start: '2026-09-22', end: '2026-09-24', dur: '3', status: 'TO_APPROVE' },
+    { emp: 'vikram@oxp.com',type: sick,   start: '2026-08-20', end: '2026-08-21', dur: '2', status: 'TO_APPROVE' },
+    { emp: 'divya@oxp.com', type: annual, start: '2026-07-28', end: '2026-07-30', dur: '3', status: 'REFUSED' },
+    { emp: 'pooja@oxp.com', type: annual, start: '2026-06-23', end: '2026-06-25', dur: '3', status: 'APPROVED' },
+    { emp: 'neha@oxp.com',  type: sick,   start: '2026-08-05', end: '2026-08-06', dur: '2', status: 'APPROVED' },
+  ]
+
+  for (const r of requestsData) {
+    const emp = createdEmployees.find((e) => e.email === r.emp)
+    if (!emp) continue
+    await prisma.timeOffRequest.create({
+      data: {
+        employeeId: emp.id,
+        typeId: r.type.id,
+        startDate: new Date(r.start),
+        endDate: new Date(r.end),
+        duration: r.dur,
+        status: r.status as any,
+      },
+    })
+  }
+
+  // Attendance - last 2 weeks for all employees, varied statuses
+  const attendanceDays = [
+    { date: '2026-08-18', checkIn: '09:02', checkOut: '18:05', hours: '8.05', status: 'PRESENT' },
+    { date: '2026-08-19', checkIn: '09:35', checkOut: '18:10', hours: '7.58', status: 'LATE' },
+    { date: '2026-08-20', checkIn: '09:00', checkOut: '18:00', hours: '8.00', status: 'PRESENT' },
+    { date: '2026-08-21', checkIn: '09:10', checkOut: '19:30', hours: '9.33', status: 'OVERTIME' },
+    { date: '2026-08-22', checkIn: '10:15', checkOut: '18:00', hours: '6.75', status: 'LATE' },
+    { date: '2026-08-25', checkIn: '09:00', checkOut: '18:00', hours: '8.00', status: 'PRESENT' },
+    { date: '2026-08-26', checkIn: '09:05', checkOut: '18:00', hours: '7.92', status: 'PRESENT' },
+    { date: '2026-08-27', checkIn: '09:00', checkOut: null,    hours: '0',    status: 'ABSENT' },
+    { date: '2026-08-28', checkIn: '09:00', checkOut: '20:00', hours: '10.00', status: 'OVERTIME' },
+    { date: '2026-08-29', checkIn: '09:20', checkOut: '18:00', hours: '7.67', status: 'PRESENT' },
+  ]
+
+  for (const emp of createdEmployees) {
+    const shuffle = [...attendanceDays].sort(() => Math.random() - 0.5).slice(0, 6)
+    for (const d of shuffle) {
+      await prisma.attendance.create({
+        data: {
+          employeeId: emp.id,
+          checkIn: new Date(`${d.date}T${d.checkIn}:00`),
+          checkOut: d.checkOut ? new Date(`${d.date}T${d.checkOut}:00`) : null,
+          workedHours: d.hours,
+          status: d.status as any,
+        },
+      })
+    }
+  }
+
+  // Helper: create payrun + payslips for a given month
+  async function createPayrun(name: string, periodStart: Date, periodEnd: Date, workedDays: string) {
+    const pr = await prisma.payrun.create({
+      data: {
+        name,
+        structureId: structure.id,
+        periodStart,
+        periodEnd,
+        status: 'PAID',
+        employeeIds: [],
+      },
+    })
+    const emps = await prisma.employee.findMany({ where: { status: 'ACTIVE' } })
+    for (const emp of emps) {
+      const contract = await prisma.contract.findFirst({ where: { employeeId: emp.id, status: 'RUNNING' } })
+      if (!contract) continue
+      const { lines, gross, deductions, net } = computePayslipLines(Number(contract.wage), rules)
+      await prisma.payslip.create({
+        data: {
+          payrunId: pr.id,
+          employeeId: emp.id,
+          contractId: contract.id,
+          periodStart,
+          periodEnd,
+          gross,
+          deductions,
+          net,
+          status: 'PAID',
+          workedDays,
+          lines: {
+            create: lines.map((l) => ({
+              ruleCode: l.ruleCode,
+              ruleName: l.ruleName,
+              category: l.category as any,
+              sequence: l.sequence,
+              amount: l.amount,
+            })),
+          },
+        },
+      })
+    }
+    return pr
+  }
+
+  await createPayrun('June 2026',  new Date('2026-06-01'), new Date('2026-06-30'), '21')
+  await createPayrun('July 2026',  new Date('2026-07-01'), new Date('2026-07-31'), '23')
+  await createPayrun('August 2026',new Date('2026-08-01'), new Date('2026-08-31'), '23')
+
+  const allCount = createdEmployees.length
   console.log('Seed complete:')
-  console.log(`  users: ${users.length} (login password: password123)`)
-  console.log(`  company: ${company.name}, employees: ${employeesData.length}, contracts: ${employeesData.length}, rules: 7`)
+  console.log(`  users: ${users.length} (password: password123)`)
+  console.log(`  employees: ${allCount} | contracts: ${allCount} | payruns: 3 (Jun/Jul/Aug PAID)`)
+  console.log(`  allocations: ${allCount * 2 + 1} | requests: ${requestsData.length} | attendance: ~${allCount * 6}`)
 }
 
 main()
