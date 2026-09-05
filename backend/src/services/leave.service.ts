@@ -98,7 +98,10 @@ export async function createRequest(input: CreateRequestInput) {
   if (input.endDate < input.startDate) throw new HttpError(400, 'End date must be on or after start date')
 
   const status = type.approvalRequired ? 'TO_APPROVE' : 'APPROVED'
-  return prisma.timeOffRequest.create({ data: { ...input, status }, include: requestInclude })
+  return prisma.timeOffRequest.create({
+    data: { ...input, status, duration: String(input.duration) },
+    include: requestInclude,
+  })
 }
 
 export async function setRequestStatus(id: string, status: 'APPROVED' | 'REFUSED') {

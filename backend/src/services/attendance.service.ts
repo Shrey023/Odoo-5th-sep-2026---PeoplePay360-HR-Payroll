@@ -27,7 +27,7 @@ export async function create(input: CreateAttendanceInput) {
   if (input.checkOut && input.checkOut < input.checkIn) {
     throw new HttpError(400, 'Check-out must be after check-in')
   }
-  const workedHours = hoursBetween(input.checkIn, input.checkOut)
+  const workedHours = String(hoursBetween(input.checkIn, input.checkOut))
   return prisma.attendance.create({
     data: { ...input, workedHours, manualEdit: true },
     include,
@@ -44,7 +44,7 @@ export async function update(id: string, input: UpdateAttendanceInput) {
 
   return prisma.attendance.update({
     where: { id },
-    data: { ...input, workedHours: hoursBetween(checkIn, checkOut), manualEdit: true },
+    data: { ...input, workedHours: String(hoursBetween(checkIn, checkOut)), manualEdit: true },
     include,
   })
 }

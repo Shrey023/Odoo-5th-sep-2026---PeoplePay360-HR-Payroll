@@ -42,15 +42,23 @@ export async function remove(id: string) {
   await prisma.salaryStructure.delete({ where: { id } })
 }
 
+function ruleDecimals(input: CreateRuleInput | UpdateRuleInput) {
+  return {
+    ...input,
+    amount: input.amount != null ? String(input.amount) : null,
+    percent: input.percent != null ? String(input.percent) : null,
+  }
+}
+
 export async function addRule(structureId: string, input: CreateRuleInput) {
   await getById(structureId)
-  return prisma.salaryRule.create({ data: { ...input, structureId } })
+  return prisma.salaryRule.create({ data: { ...ruleDecimals(input), structureId } })
 }
 
 export async function updateRule(ruleId: string, input: UpdateRuleInput) {
   const rule = await prisma.salaryRule.findUnique({ where: { id: ruleId } })
   if (!rule) throw new HttpError(404, 'Salary rule not found')
-  return prisma.salaryRule.update({ where: { id: ruleId }, data: input })
+  return prisma.salaryRule.update({ where: { id: ruleId }, data: ruleDecimals(input) })
 }
 
 export async function removeRule(ruleId: string) {
