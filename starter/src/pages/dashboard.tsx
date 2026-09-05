@@ -155,7 +155,7 @@ export function DashboardPage() {
             ))}
           </select>
           <select className="h-9 rounded-md border bg-background px-3 text-sm" defaultValue="oxp">
-            <option value="oxp">OXP Technologies</option>
+            <option value="oxp">OXP Pvt Ltd</option>
           </select>
         </div>
       </div>
@@ -248,26 +248,36 @@ export function DashboardPage() {
             <p className="text-xs text-muted-foreground">Source: Payrun + Payslip validation</p>
           </CardHeader>
           <CardContent>
-            <div className="mb-4 flex gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-full bg-green-600 inline-block" />
-                <span className="text-muted-foreground">Paid</span>
-                <span className="font-semibold">{kpis.paid}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="size-3 rounded-full bg-amber-500 inline-block" />
-                <span className="text-muted-foreground">Pending</span>
-                <span className="font-semibold">{kpis.pending}</span>
-              </div>
+            {/* Stacked status bar */}
+            <p className="text-xs text-muted-foreground mb-1">Status split</p>
+            {(() => {
+              const total = kpis.paid + kpis.pending
+              const paidPct = total > 0 ? (kpis.paid / total) * 100 : 0
+              const pendingPct = total > 0 ? (kpis.pending / total) * 100 : 0
+              return (
+                <div className="mb-1 flex h-3 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="bg-green-500 transition-all" style={{ width: `${paidPct}%` }} />
+                  <div className="bg-amber-400 transition-all" style={{ width: `${pendingPct}%` }} />
+                </div>
+              )
+            })()}
+            <div className="mb-4 flex gap-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-green-500 inline-block" /> Paid <strong className="text-foreground">{kpis.paid}</strong></span>
+              <span className="flex items-center gap-1"><span className="size-2 rounded-full bg-amber-400 inline-block" /> Pending <strong className="text-foreground">{kpis.pending}</strong></span>
             </div>
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground mb-2">Current alerts</p>
               {warnings.length === 0 ? (
                 <p className="text-xs text-muted-foreground">No alerts.</p>
               ) : (
-                warnings.map((w) => (
-                  <div key={w.type} className="text-xs text-amber-700">• {w.message}</div>
-                ))
+                warnings.map((w) => {
+                  const isRed = w.type === 'missing_bank' || w.type === 'duplicate'
+                  return (
+                    <div key={w.type} className={`text-xs ${isRed ? 'text-red-600' : 'text-muted-foreground'}`}>
+                      • {w.message}
+                    </div>
+                  )
+                })
               )}
             </div>
           </CardContent>
