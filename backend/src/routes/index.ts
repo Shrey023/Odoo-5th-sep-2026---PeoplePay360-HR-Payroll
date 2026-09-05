@@ -3,6 +3,7 @@ import { Router } from 'express'
 import { attendanceRouter } from './attendance.routes.js'
 import { authRouter } from './auth.routes.js'
 import { contractRouter } from './contract.routes.js'
+import { dashboardRouter } from './dashboard.routes.js'
 import { departmentRouter } from './department.routes.js'
 import { employeeRouter } from './employee.routes.js'
 import { healthRouter } from './health.routes.js'
@@ -23,3 +24,4 @@ apiRouter.use('/attendance', attendanceRouter)
 apiRouter.use('/time-off', leaveRouter)
 apiRouter.use('/schedules', scheduleRouter)
 apiRouter.use('/departments', departmentRouter)
+apiRouter.use('/dashboard', dashboardRouter)

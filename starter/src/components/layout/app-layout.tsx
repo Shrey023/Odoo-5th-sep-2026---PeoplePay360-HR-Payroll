@@ -12,9 +12,14 @@ const nav = [
   { to: '/time-off', label: 'Time Off', icon: Plane },
 ]
 
+function isActive(pathname: string, to: string) {
+  return to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`)
+}
+
 export function AppLayout() {
   const { user, logout } = useAuth()
   const { pathname } = useLocation()
+  const current = nav.find((n) => isActive(pathname, n.to))
 
   return (
     <div className="flex min-h-svh">
@@ -27,7 +32,7 @@ export function AppLayout() {
               to={to}
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                pathname === to
+                isActive(pathname, to)
                   ? 'bg-sidebar-accent text-sidebar-accent-foreground'
                   : 'text-muted-foreground hover:bg-sidebar-accent/60',
               )}
@@ -53,7 +58,7 @@ export function AppLayout() {
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center border-b px-6">
           <h1 className="text-base font-semibold capitalize">
-            {nav.find((n) => n.to === pathname)?.label ?? 'App'}
+            {current?.label ?? 'App'}
           </h1>
         </header>
         <main className="flex-1 overflow-auto p-6">
