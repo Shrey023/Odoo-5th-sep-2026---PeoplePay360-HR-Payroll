@@ -210,7 +210,7 @@ export async function sendPayslips(id: string) {
   }
 
   const results: { to: string; previewUrl: string | false }[] = []
-  for (const slip of payrun.payslips) {
+  for (const slip of payrun.payslips.slice(0, 20)) {
     const { buffer, fileName } = await getPayslipPdf(slip.id)
     const employee = await prisma.employee.findUnique({
       where: { id: slip.employeeId },
