@@ -70,7 +70,7 @@ Legend: coverage is about the **data model + planned build**, not finished UI.
 | 32 | If type requiresAllocation, employee must have available allocation before submitting request | DONE | balance guard on approve -> 422 over-balance (Slice 5). Note: enforced at approval not submission |
 | 33 | Request approval lifecycle status | DONE | `RequestStatus` (DRAFT/TO_APPROVE/APPROVED/REFUSED) |
 | 34 | List shows balance math: Allocated, Taken, Remaining | DONE | getBalances + Leave Balances card on employee detail (Slice 5) |
-| 35 | Request should show which balance was consumed | TODO | Frontend/API |
+| 35 | Request should show which balance was consumed | DONE | approved requiresAllocation requests show "Consumed X from <type>" on Requests tab + employee-detail Leave Balances (PR #8); verified Aarav 2 days Annual |
 
 ## Salary Structure & Rules
 
