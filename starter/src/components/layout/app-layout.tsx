@@ -129,7 +129,7 @@ export function AppLayout() {
             if (!isNavGroup(entry)) {
               if (entry.adminOnly && !hasRole('ADMIN')) return null
               if (entry.hrOnly && isEmployee) return null
-              if (!entry.hrOnly && !['My Payslips', 'My Profile'].includes(entry.label) && isEmployee) return null
+              if (!entry.hrOnly && !['My Dashboard', 'My Payslips', 'My Profile'].includes(entry.label) && isEmployee) return null
               const Icon = entry.icon
               return (
                 <Link
