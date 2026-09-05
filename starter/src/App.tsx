@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { useAuth } from '@/lib/auth'
 import { AppLayout } from '@/components/layout/app-layout'
 import { RequireAuth } from '@/lib/auth'
 import { AttendancePage } from '@/pages/attendance'
@@ -19,9 +20,16 @@ import { SalaryStructuresPage } from '@/pages/salary-structures'
 import { TimeOffAllocationsPage } from '@/pages/time-off-allocations'
 import { TimeOffRequestsPage } from '@/pages/time-off-requests'
 import { TimeOffTypesPage } from '@/pages/time-off-types'
+import { MyPayslipsPage } from '@/pages/my-payslips'
 import { UsersPage } from '@/pages/users'
 import { WorkingScheduleDetailPage } from '@/pages/working-schedule-detail'
 import { WorkingSchedulesPage } from '@/pages/working-schedules'
+
+function RootRedirect() {
+  const { hasRole } = useAuth()
+  const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
+  return <Navigate to={isHR ? '/' : '/my-payslips'} replace />
+}
 
 export default function App() {
   return (
@@ -36,6 +44,7 @@ export default function App() {
         }
       >
         <Route path="/" element={<DashboardPage />} />
+        <Route path="/home" element={<RootRedirect />} />
 
         {/* Employees group */}
         <Route path="/employees" element={<EmployeesPage />} />
@@ -62,6 +71,10 @@ export default function App() {
         <Route path="/salary-structures" element={<SalaryStructuresPage />} />
         <Route path="/salary-structures/:id" element={<SalaryStructureDetailPage />} />
         <Route path="/salary-rules" element={<SalaryRulesPage />} />
+
+        {/* Employee self-service */}
+        <Route path="/my-payslips" element={<MyPayslipsPage />} />
+        <Route path="/my-profile" element={<Navigate to="/employees" replace />} />
 
         {/* Admin */}
         <Route path="/users" element={<UsersPage />} />

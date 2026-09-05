@@ -25,12 +25,14 @@ type NavGroup = {
   icon: React.ElementType
   items: NavItem[]
   adminOnly?: boolean
+  hrOnly?: boolean
 }
 type NavLink = {
   to: string
   label: string
   icon: React.ElementType
   adminOnly?: boolean
+  hrOnly?: boolean
 }
 type NavEntry = NavGroup | NavLink
 
@@ -39,10 +41,13 @@ function isNavGroup(e: NavEntry): e is NavGroup {
 }
 
 const nav: NavEntry[] = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, hrOnly: true },
+  { to: '/my-payslips', label: 'My Payslips', icon: Receipt },
+  { to: '/my-profile', label: 'My Profile', icon: Users },
   {
     label: 'Employees',
     icon: Users,
+    hrOnly: true,
     items: [
       { to: '/employees', label: 'Employees' },
       { to: '/contracts', label: 'Contracts' },
@@ -50,10 +55,11 @@ const nav: NavEntry[] = [
       { to: '/working-schedules', label: 'Working Schedules' },
     ],
   },
-  { to: '/attendance', label: 'Attendance', icon: CalendarClock },
+  { to: '/attendance', label: 'Attendance', icon: CalendarClock, hrOnly: true },
   {
     label: 'Time Off',
     icon: Plane,
+    hrOnly: true,
     items: [
       { to: '/time-off/requests', label: 'Time Offs' },
       { to: '/time-off/allocations', label: 'Allocations' },
@@ -63,6 +69,7 @@ const nav: NavEntry[] = [
   {
     label: 'Payroll',
     icon: Receipt,
+    hrOnly: true,
     items: [
       { to: '/payruns', label: 'Payruns' },
       { to: '/payslips', label: 'Payslips' },
@@ -116,8 +123,12 @@ export function AppLayout() {
         <div className="mb-6 px-2 text-lg font-semibold">PeoplePay360</div>
         <nav className="flex flex-1 flex-col gap-1">
           {nav.map((entry) => {
+            const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
+            const isEmployee = !isHR
             if (!isNavGroup(entry)) {
               if (entry.adminOnly && !hasRole('ADMIN')) return null
+              if (entry.hrOnly && isEmployee) return null
+              if (!entry.hrOnly && !['My Payslips', 'My Profile'].includes(entry.label) && isEmployee) return null
               const Icon = entry.icon
               return (
                 <Link
@@ -137,6 +148,7 @@ export function AppLayout() {
             }
 
             if (entry.adminOnly && !hasRole('ADMIN')) return null
+            if (entry.hrOnly && isEmployee) return null
             const Icon = entry.icon
             const isOpen = open.includes(entry.label)
             const active = groupActive(pathname, entry.items)
