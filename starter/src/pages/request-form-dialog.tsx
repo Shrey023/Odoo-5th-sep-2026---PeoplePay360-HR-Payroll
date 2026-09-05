@@ -22,7 +22,7 @@ const schema = z
     typeId: z.string().uuid('Pick a type'),
     startDate: z.string().min(1, 'Start date required'),
     endDate: z.string().min(1, 'End date required'),
-    duration: z.coerce.number().positive('Duration must be greater than 0'),
+    duration: z.number().positive('Duration must be greater than 0'),
   })
   .refine((v) => v.endDate >= v.startDate, {
     message: 'End must be on or after start',
@@ -121,7 +121,7 @@ export function RequestFormDialog({ open, onOpenChange }: Props) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="duration">Duration</Label>
-            <Input id="duration" type="number" step="0.5" {...register('duration')} />
+            <Input id="duration" type="number" step="0.5" {...register('duration', { valueAsNumber: true })} />
             {errors.duration && <p className="text-xs text-destructive">{errors.duration.message}</p>}
           </div>
           <DialogFooter>

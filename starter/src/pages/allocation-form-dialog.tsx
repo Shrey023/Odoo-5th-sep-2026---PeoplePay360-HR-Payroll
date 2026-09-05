@@ -20,7 +20,7 @@ const schema = z
   .object({
     employeeId: z.string().uuid('Pick an employee'),
     typeId: z.string().uuid('Pick a type'),
-    amount: z.coerce.number().positive('Amount must be greater than 0'),
+    amount: z.number().positive('Amount must be greater than 0'),
     validFrom: z.string().min(1, 'Valid-from required'),
     validTo: z.string().min(1, 'Valid-to required'),
   })
@@ -107,7 +107,7 @@ export function AllocationFormDialog({ open, onOpenChange }: Props) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="amount">Amount</Label>
-            <Input id="amount" type="number" step="0.5" {...register('amount')} />
+            <Input id="amount" type="number" step="0.5" {...register('amount', { valueAsNumber: true })} />
             {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
           </div>
           <div className="grid grid-cols-2 gap-4">

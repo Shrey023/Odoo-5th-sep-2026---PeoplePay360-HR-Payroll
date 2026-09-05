@@ -21,7 +21,7 @@ const schema = z
     name: z.string().min(1, 'Name is required'),
     code: z.string().min(1).regex(/^[A-Z_]+$/, 'Uppercase letters/underscores only'),
     category: z.enum(['BASIC', 'ALLOWANCE', 'GROSS', 'DEDUCTION', 'NET']),
-    sequence: z.coerce.number().int().nonnegative(),
+    sequence: z.number().int().nonnegative(),
     computeType: z.enum(['FIXED', 'PERCENTAGE', 'FORMULA']),
     amount: z.string().optional(),
     percent: z.string().optional(),
@@ -129,7 +129,7 @@ export function RuleFormDialog({ open, onOpenChange, structureId, rule }: Props)
             </div>
             <div className="space-y-2">
               <Label htmlFor="sequence">Sequence</Label>
-              <Input id="sequence" type="number" {...register('sequence')} />
+              <Input id="sequence" type="number" {...register('sequence', { valueAsNumber: true })} />
             </div>
           </div>
           <div className="space-y-2">

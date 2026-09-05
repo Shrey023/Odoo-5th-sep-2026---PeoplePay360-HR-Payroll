@@ -23,7 +23,7 @@ const schema = z
     employeeType: z.enum(['FULL_TIME', 'CONTRACTOR', 'INTERN']),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().optional(),
-    wage: z.coerce.number().positive('Wage must be greater than 0'),
+    wage: z.number().positive('Wage must be greater than 0'),
     status: z.enum(['DRAFT', 'RUNNING', 'EXPIRED']),
     departmentId: z.string().optional(),
   })
@@ -121,7 +121,7 @@ export function ContractFormDialog({ open, onOpenChange, employeeId, contract }:
             </div>
             <div className="space-y-2">
               <Label htmlFor="wage">Monthly Wage</Label>
-              <Input id="wage" type="number" step="0.01" {...register('wage')} />
+              <Input id="wage" type="number" step="0.01" {...register('wage', { valueAsNumber: true })} />
               {errors.wage && <p className="text-xs text-destructive">{errors.wage.message}</p>}
             </div>
           </div>

@@ -115,7 +115,7 @@ export function DashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" fontSize={12} />
                 <YAxis fontSize={12} tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip formatter={(v: number) => currency(v)} />
+                <Tooltip formatter={(v) => currency(Number(v))} />
                 <Bar dataKey="net" fill="#2563eb" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
