@@ -1,72 +1,131 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
-import { z } from 'zod'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth'
 
-const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(1, 'Password required'),
-})
-type Values = z.infer<typeof schema>
-
 export function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<Values>({ resolver: zodResolver(schema) })
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  async function onSubmit(values: Values) {
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
     try {
-      await login(values.email, values.password)
-      toast.success('Logged in')
+      await login(email, password)
       navigate('/')
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Login failed')
+    } catch (err: any) {
+      setError(err.message ?? 'Invalid credentials')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl">Welcome back</CardTitle>
-          <p className="text-sm text-muted-foreground">Sign in to continue to your workspace.</p>
-        </CardHeader>
-        <CardContent>
-          <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+    <div className="flex min-h-svh">
+      {/* Brand panel */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between bg-sidebar p-12">
+        <div>
+          <div className="flex items-center gap-3 mb-12">
+            <div className="size-9 rounded-lg bg-primary flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" className="size-5 text-white" stroke="currentColor" strokeWidth={2}>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-sidebar-foreground">PeoplePay360</span>
+          </div>
+          <h1 className="text-3xl font-bold text-sidebar-foreground leading-tight mb-4">
+            HR & Payroll,<br />done right.
+          </h1>
+          <p className="text-sidebar-foreground/60 text-sm leading-relaxed max-w-xs">
+            Manage employees, run payroll, track attendance and leave - all in one place.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-xs text-sidebar-foreground/40 mb-2">Quick login - click to fill:</p>
+          {[
+            { role: 'Admin', email: 'admin@oxp.com' },
+            { role: 'Payroll Manager', email: 'payroll@oxp.com' },
+            { role: 'HR Manager', email: 'hr@oxp.com' },
+            { role: 'Employee', email: 'aarav@oxp.com' },
+          ].map((u) => (
+            <button
+              key={u.email}
+              type="button"
+              onClick={() => { setEmail(u.email); setPassword('password123') }}
+              className="w-full text-left rounded-lg border border-sidebar-border px-4 py-3 hover:bg-sidebar-accent transition-colors group"
+            >
+              <div className="text-xs text-sidebar-foreground/50 mb-0.5">{u.role}</div>
+              <div className="text-sm font-medium text-sidebar-foreground/80 group-hover:text-sidebar-foreground">{u.email}</div>
+            </button>
+          ))}
+          <p className="text-xs text-sidebar-foreground/40 text-center pt-1">All demo accounts: password123</p>
+        </div>
+      </div>
+
+      {/* Login form */}
+      <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 bg-background">
+        <div className="w-full max-w-sm">
+          <div className="lg:hidden flex items-center gap-2 mb-8">
+            <div className="size-7 rounded-md bg-primary flex items-center justify-center">
+              <svg viewBox="0 0 24 24" fill="none" className="size-4 text-white" stroke="currentColor" strokeWidth={2}>
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <span className="font-bold text-foreground">PeoplePay360</span>
+          </div>
+
+          <h2 className="text-2xl font-bold text-foreground mb-1">Welcome back</h2>
+          <p className="text-sm text-muted-foreground mb-8">Sign in to continue to your workspace.</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Work Email</Label>
-              <Input id="email" type="email" placeholder="name@company.com" {...register('email')} />
-              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoFocus
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" {...register('password')} />
-              {errors.password && (
-                <p className="text-xs text-destructive">{errors.password.message}</p>
-              )}
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              Sign In
+
+            {error && (
+              <div className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Signing in…' : 'Sign In'}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Accounts are created by an administrator.
-            </p>
-            <p className="rounded-md bg-muted p-2 text-center text-xs text-muted-foreground">
-              Demo: payroll@oxp.com / password123
-            </p>
           </form>
-        </CardContent>
-      </Card>
+
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Accounts are created by an administrator.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

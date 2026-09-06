@@ -122,9 +122,18 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-svh">
-      <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar p-4 md:flex">
-        <div className="mb-6 px-2 text-lg font-semibold">PeoplePay360</div>
-        <nav className="flex flex-1 flex-col gap-1">
+      <aside className="hidden w-60 shrink-0 flex-col bg-sidebar md:flex">
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 px-5 py-5 border-b border-sidebar-border">
+          <div className="size-7 rounded-md bg-primary flex items-center justify-center shrink-0">
+            <svg viewBox="0 0 24 24" fill="none" className="size-4 text-white" stroke="currentColor" strokeWidth={2}>
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <span className="text-sm font-bold text-sidebar-foreground tracking-tight">PeoplePay360</span>
+        </div>
+
+        <nav className="flex flex-1 flex-col gap-0.5 p-3 overflow-y-auto">
           {nav.map((entry) => {
             const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
             const isEmployee = !isHR
@@ -141,10 +150,10 @@ export function AppLayout() {
                     'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                     isActive(pathname, entry.to)
                       ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                      : 'text-muted-foreground hover:bg-sidebar-accent/60',
+                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                   )}
                 >
-                  <Icon className="size-4" />
+                  <Icon className="size-4 shrink-0" />
                   {entry.label}
                 </Link>
               )
@@ -164,17 +173,13 @@ export function AppLayout() {
                   className={cn(
                     'flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
                     active
-                      ? 'text-sidebar-accent-foreground'
-                      : 'text-muted-foreground hover:bg-sidebar-accent/60',
+                      ? 'text-sidebar-foreground'
+                      : 'text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                   )}
                 >
-                  <Icon className="size-4" />
-                  <span className="flex-1 text-left">
-                    {entry.label} ▼
-                  </span>
-                  <ChevronDown
-                    className={cn('size-3 transition-transform', isOpen && 'rotate-180')}
-                  />
+                  <Icon className="size-4 shrink-0" />
+                  <span className="flex-1 text-left">{entry.label}</span>
+                  <ChevronDown className={cn('size-3 transition-transform', isOpen && 'rotate-180')} />
                 </button>
                 {isOpen && (
                   <div className="ml-7 mt-0.5 flex flex-col gap-0.5">
@@ -186,7 +191,7 @@ export function AppLayout() {
                           'rounded-md px-3 py-1.5 text-sm transition-colors',
                           isActive(pathname, item.to)
                             ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground'
-                            : 'text-muted-foreground hover:bg-sidebar-accent/60',
+                            : 'text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                         )}
                       >
                         {item.label}
@@ -198,24 +203,33 @@ export function AppLayout() {
             )
           })}
         </nav>
-        <div className="mt-auto border-t pt-4">
-          <div className="mb-2 px-2 text-sm">
-            <div className="font-medium">{user?.name}</div>
-            <div className="text-xs text-muted-foreground">
-              {user?.roles.map((r) => r.replace(/_/g, ' ')).join(', ').toLowerCase()}
+
+        {/* User card */}
+        <div className="border-t border-sidebar-border p-3">
+          <div className="flex items-center gap-3 rounded-md px-2 py-2">
+            <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+              <span className="text-xs font-bold text-primary">
+                {user?.name?.split(' ').map((n) => n[0]).slice(0, 2).join('')}
+              </span>
             </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-sidebar-foreground truncate">{user?.name}</div>
+              <div className="text-xs text-sidebar-foreground/50 truncate capitalize">
+                {user?.roles[0]?.replace(/_/g, ' ').toLowerCase()}
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="size-7 text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 shrink-0" onClick={logout} title="Logout">
+              <LogOut className="size-3.5" />
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" className="w-full justify-start" onClick={logout}>
-            <LogOut className="size-4" /> Logout
-          </Button>
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-14 items-center border-b px-6">
-          <h1 className="text-base font-semibold">{pageLabel}</h1>
+      <div className="flex flex-1 flex-col min-w-0">
+        <header className="flex h-13 items-center border-b bg-card px-6 gap-3">
+          <h1 className="text-sm font-semibold text-foreground">{pageLabel}</h1>
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-6 bg-background">
           <Outlet />
         </main>
       </div>
