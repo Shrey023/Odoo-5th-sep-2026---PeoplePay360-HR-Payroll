@@ -31,10 +31,17 @@ export function TimeOffRequestsPage() {
   const qc = useQueryClient()
   const [reqOpen, setReqOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['time-off-requests'],
     queryFn: () => timeOffApi.listRequests(),
+  })
+
+  const { data: types = [] } = useQuery({
+    queryKey: ['time-off-types'],
+    queryFn: () => timeOffApi.listTypes(),
   })
 
   const decideReq = useMutation({
@@ -47,9 +54,12 @@ export function TimeOffRequestsPage() {
     onError: (e: Error) => toast.error(e.message),
   })
 
-  const filtered = requests.filter(
-    (r) => !search || r.employee.name.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = requests.filter((r) => {
+    if (search && !r.employee.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (typeFilter && r.type.id !== typeFilter) return false
+    if (statusFilter && r.status !== statusFilter) return false
+    return true
+  })
 
   return (
     <div className="space-y-4">
@@ -62,12 +72,35 @@ export function TimeOffRequestsPage() {
         )}
       </div>
 
-      <Input
-        placeholder="Search requests…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
-      />
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder="Search employee…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        >
+          <option value="">All types</option>
+          {types.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">All statuses</option>
+          <option value="DRAFT">Draft</option>
+          <option value="TO_APPROVE">To Approve</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REFUSED">Refused</option>
+        </select>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>

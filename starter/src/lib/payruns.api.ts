@@ -8,6 +8,7 @@ export interface PayrunSummary {
   status: PayrunStatus
   periodStart: string
   periodEnd: string
+  emailedAt: string | null
   structure: { id: string; name: string }
   _count: { payslips: number }
   warningsCount: number
@@ -45,6 +46,7 @@ export interface PayrunDetail {
   status: PayrunStatus
   periodStart: string
   periodEnd: string
+  emailedAt: string | null
   structure: { id: string; name: string }
   payslips: Payslip[]
   warnings: Warning[]

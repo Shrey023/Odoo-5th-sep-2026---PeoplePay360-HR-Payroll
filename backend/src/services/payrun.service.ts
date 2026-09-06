@@ -116,7 +116,10 @@ export async function compute(id: string) {
   const computed: {
     employeeId: string
     contractId: string
+    periodStart: Date
+    periodEnd: Date
     workedDays: number
+    overtimeHours: number
     gross: number
     deductions: number
     net: number
@@ -125,38 +128,60 @@ export async function compute(id: string) {
   const skipped: { employeeId: string; name: string; reason: string }[] = []
 
   for (const emp of employees) {
-    const contract = await prisma.contract.findFirst({
+    const contracts = await prisma.contract.findMany({
       where: {
         employeeId: emp.id,
         status: 'RUNNING',
         startDate: { lte: payrun.periodEnd },
         OR: [{ endDate: null }, { endDate: { gte: payrun.periodStart } }],
       },
+      orderBy: { startDate: 'asc' },
     })
-    if (!contract) {
+    if (contracts.length === 0) {
       skipped.push({ employeeId: emp.id, name: emp.name, reason: 'No running contract for period' })
       continue
     }
 
-    const attendanceCount = await prisma.attendance.count({
-      where: {
-        employeeId: emp.id,
-        checkIn: { gte: payrun.periodStart, lte: payrun.periodEnd },
-        status: { in: ['PRESENT', 'LATE', 'OVERTIME'] },
-      },
-    })
-    const workedDays = attendanceCount > 0 ? attendanceCount : 22
+    for (const contract of contracts) {
+      // Clamp contract period to payrun period for attendance count and payslip dates
+      const sliceStart = contract.startDate > payrun.periodStart ? contract.startDate : payrun.periodStart
+      const sliceEnd = contract.endDate && contract.endDate < payrun.periodEnd ? contract.endDate : payrun.periodEnd
 
-    const result = computePayslip(Number(contract.wage), engineRules, workedDays)
-    computed.push({
-      employeeId: emp.id,
-      contractId: contract.id,
-      workedDays,
-      gross: result.gross,
-      deductions: result.deductions,
-      net: result.net,
-      lines: result.lines,
-    })
+      const attendanceCount = await prisma.attendance.count({
+        where: {
+          employeeId: emp.id,
+          checkIn: { gte: sliceStart, lte: sliceEnd },
+          status: { in: ['PRESENT', 'LATE', 'OVERTIME'] },
+        },
+      })
+      const workedDays = attendanceCount > 0 ? attendanceCount : 22
+
+      const overtimeRecords = await prisma.attendance.findMany({
+        where: {
+          employeeId: emp.id,
+          checkIn: { gte: sliceStart, lte: sliceEnd },
+          status: 'OVERTIME',
+        },
+        select: { workedHours: true },
+      })
+      const overtimeHours = Math.round(
+        (overtimeRecords.reduce((sum, r) => sum + Math.max(0, Number(r.workedHours) - 9), 0) + Number.EPSILON) * 100,
+      ) / 100
+
+      const result = computePayslip(Number(contract.wage), engineRules, workedDays, overtimeHours)
+      computed.push({
+        employeeId: emp.id,
+        contractId: contract.id,
+        periodStart: sliceStart,
+        periodEnd: sliceEnd,
+        workedDays,
+        overtimeHours,
+        gross: result.gross,
+        deductions: result.deductions,
+        net: result.net,
+        lines: result.lines,
+      })
+    }
   }
 
   await prisma.$transaction(async (tx) => {
@@ -167,9 +192,10 @@ export async function compute(id: string) {
           payrunId: id,
           employeeId: c.employeeId,
           contractId: c.contractId,
-          periodStart: payrun.periodStart,
-          periodEnd: payrun.periodEnd,
+          periodStart: c.periodStart,
+          periodEnd: c.periodEnd,
           workedDays: c.workedDays,
+          overtimeHours: c.overtimeHours,
           gross: c.gross,
           deductions: c.deductions,
           net: c.net,
@@ -221,6 +247,9 @@ export async function sendPayslips(id: string) {
   if (payrun.status !== 'VALIDATED' && payrun.status !== 'PAID') {
     throw new HttpError(409, 'Validate the payrun before sending payslips')
   }
+  if (payrun.emailedAt) {
+    throw new HttpError(409, `Payslips already emailed on ${payrun.emailedAt.toISOString().slice(0, 10)}`)
+  }
 
   const results: { to: string; previewUrl: string | false }[] = []
   for (const slip of payrun.payslips.slice(0, 20)) {
@@ -238,6 +267,7 @@ export async function sendPayslips(id: string) {
     })
     results.push(sent)
   }
+  await prisma.payrun.update({ where: { id }, data: { emailedAt: new Date() } })
   return { sent: results.length, results }
 }
 

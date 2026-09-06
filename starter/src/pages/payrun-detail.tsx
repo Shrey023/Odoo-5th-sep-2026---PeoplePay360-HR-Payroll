@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { AlertTriangle, ArrowLeft, Download, Mail } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/table'
 import { PAYROLL_WRITE_ROLES, useAuth } from '@/lib/auth'
 import { downloadFile } from '@/lib/http'
+import { Input } from '@/components/ui/input'
 import { type PayrunStatus, payrunsApi } from '@/lib/payruns.api'
 
 const statusVariant: Record<PayrunStatus, 'default' | 'secondary' | 'outline'> = {
@@ -32,6 +34,8 @@ export function PayrunDetailPage() {
   const { hasRole } = useAuth()
   const canEdit = hasRole(...PAYROLL_WRITE_ROLES)
   const qc = useQueryClient()
+
+  const [search, setSearch] = useState('')
 
   const { data: payrun, isLoading } = useQuery({
     queryKey: ['payrun', id],
@@ -99,7 +103,10 @@ export function PayrunDetailPage() {
   if (isLoading) return <p className="text-sm text-muted-foreground">Loading...</p>
   if (!payrun) return <p className="text-sm text-muted-foreground">Payrun not found.</p>
 
-  const totalNet = payrun.payslips.reduce((sum, s) => sum + Number(s.net), 0)
+  const filteredSlips = (payrun?.payslips ?? []).filter(
+    (s) => !search || s.employee.name.toLowerCase().includes(search.toLowerCase()),
+  )
+  const totalNet = (payrun?.payslips ?? []).reduce((sum, s) => sum + Number(s.net), 0)
 
   return (
     <div className="space-y-6">
@@ -116,7 +123,14 @@ export function PayrunDetailPage() {
             {payrun.periodStart.slice(0, 10)} - {payrun.periodEnd.slice(0, 10)} - {payrun.structure.name}
           </p>
         </div>
-        <Badge variant={statusVariant[payrun.status]}>{payrun.status}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={statusVariant[payrun.status]}>{payrun.status}</Badge>
+          {payrun.emailedAt && (
+            <Badge variant="secondary">
+              Emails sent {payrun.emailedAt.slice(0, 10)}
+            </Badge>
+          )}
+        </div>
       </div>
 
       {canEdit && (
@@ -141,9 +155,10 @@ export function PayrunDetailPage() {
               size="sm"
               variant="outline"
               onClick={() => send.mutate()}
-              disabled={send.isPending}
+              disabled={send.isPending || !!payrun.emailedAt}
+              title={payrun.emailedAt ? `Already emailed on ${payrun.emailedAt.slice(0, 10)}` : undefined}
             >
-              <Mail className="size-4" /> Send Payslips
+              <Mail className="size-4" /> {payrun.emailedAt ? 'Emails Sent' : 'Send Payslips'}
             </Button>
           )}
         </div>
@@ -171,6 +186,13 @@ export function PayrunDetailPage() {
               No payslips yet. Compute the payrun to generate them.
             </p>
           ) : (
+            <>
+            <Input
+              placeholder="Search employee…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-xs mb-3"
+            />
             <Table>
               <TableHeader>
                 <TableRow>
@@ -185,7 +207,7 @@ export function PayrunDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {payrun.payslips.map((s) => {
+                {filteredSlips.map((s) => {
                   const warn = payrun.warnings.find((w) => w.employeeId === s.employee.id)
                   const basicLine = s.lines.find((l) => l.category === 'BASIC')
                   return (
@@ -229,6 +251,7 @@ export function PayrunDetailPage() {
                 </TableRow>
               </TableBody>
             </Table>
+            </>
           )}
         </CardContent>
       </Card>

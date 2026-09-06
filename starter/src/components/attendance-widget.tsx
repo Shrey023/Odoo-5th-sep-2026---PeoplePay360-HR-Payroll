@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { attendanceApi } from '@/lib/attendance.api'
+import { HR_ROLES, useAuth } from '@/lib/auth'
 
 function elapsed(since: string) {
   const ms = Date.now() - new Date(since).getTime()
@@ -18,6 +19,8 @@ function elapsed(since: string) {
 }
 
 export function AttendanceWidget() {
+  const { hasRole } = useAuth()
+  const isHR = hasRole(...HR_ROLES)
   const qc = useQueryClient()
   const [open, setOpen] = useState(false)
   const [tick, setTick] = useState(0)
@@ -52,6 +55,8 @@ export function AttendanceWidget() {
   })
 
   const isCheckedIn = Boolean(active)
+
+  if (isHR) return null
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

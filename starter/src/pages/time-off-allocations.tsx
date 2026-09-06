@@ -30,6 +30,8 @@ export function TimeOffAllocationsPage() {
   const qc = useQueryClient()
   const [allocOpen, setAllocOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [typeFilter, setTypeFilter] = useState('')
 
   const { data: allocations = [], isLoading } = useQuery({
     queryKey: ['allocations'],
@@ -39,6 +41,11 @@ export function TimeOffAllocationsPage() {
   const { data: requests = [] } = useQuery({
     queryKey: ['time-off-requests'],
     queryFn: () => timeOffApi.listRequests(),
+  })
+
+  const { data: types = [] } = useQuery({
+    queryKey: ['time-off-types'],
+    queryFn: () => timeOffApi.listTypes(),
   })
 
   const decideAlloc = useMutation({
@@ -63,9 +70,12 @@ export function TimeOffAllocationsPage() {
       .reduce((sum, r) => sum + Number(r.duration), 0)
   }
 
-  const filtered = allocations.filter(
-    (a) => !search || a.employee.name.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = allocations.filter((a) => {
+    if (search && !a.employee.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (statusFilter && a.status !== statusFilter) return false
+    if (typeFilter && a.type.id !== typeFilter) return false
+    return true
+  })
 
   return (
     <div className="space-y-4">
@@ -78,12 +88,34 @@ export function TimeOffAllocationsPage() {
         )}
       </div>
 
-      <Input
-        placeholder="Search allocations…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
-      />
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder="Search employee…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        >
+          <option value="">All types</option>
+          {types.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">All statuses</option>
+          <option value="DRAFT">Draft</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REFUSED">Refused</option>
+        </select>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>

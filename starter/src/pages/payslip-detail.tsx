@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { downloadFile, http } from '@/lib/http'
+import { HR_ROLES, useAuth } from '@/lib/auth'
 import { payrunsApi } from '@/lib/payruns.api'
 
 interface PayslipDetail {
@@ -22,6 +23,7 @@ interface PayslipDetail {
   deductions: string
   net: string
   workedDays: string
+  overtimeHours: string
   status: string
   periodStart: string
   periodEnd: string
@@ -44,6 +46,8 @@ const categoryVariant: Record<string, 'default' | 'secondary' | 'outline' | 'des
 export function PayslipDetailPage() {
   const { id = '' } = useParams()
   const navigate = useNavigate()
+  const { hasRole } = useAuth()
+  const isHR = hasRole(...HR_ROLES)
 
   const { data: payslip, isLoading } = useQuery({
     queryKey: ['payslip', id],
@@ -84,11 +88,13 @@ export function PayslipDetailPage() {
           <Button size="sm" variant="outline" onClick={downloadPdf}>
             <Download className="size-4" /> Print Payslip
           </Button>
-          <Button size="sm" variant="outline" asChild>
-            <Link to={`/payruns/${payslip.payrun.id}`}>
-              <ExternalLink className="size-4" /> Open Payrun
-            </Link>
-          </Button>
+          {isHR && (
+            <Button size="sm" variant="outline" asChild>
+              <Link to={`/payruns/${payslip.payrun.id}`}>
+                <ExternalLink className="size-4" /> Open Payrun
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -113,6 +119,14 @@ export function PayslipDetailPage() {
             <div className="font-medium">{payslip.workedDays}</div>
           </CardContent>
         </Card>
+        {Number(payslip.overtimeHours) > 0 && (
+          <Card className="border-amber-400/60 bg-amber-50/50">
+            <CardContent className="pt-4">
+              <div className="text-xs text-amber-600 font-medium">Overtime Hours</div>
+              <div className="text-lg font-semibold text-amber-700">{Number(payslip.overtimeHours).toFixed(1)} hrs</div>
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardContent className="pt-4">
             <div className="text-xs text-muted-foreground">Net Salary</div>
@@ -136,20 +150,30 @@ export function PayslipDetailPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {payslip.lines.map((l) => (
-                <TableRow key={l.id}>
-                  <TableCell className="font-medium">{l.ruleName}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{l.ruleCode}</TableCell>
-                  <TableCell>
-                    <Badge variant={categoryVariant[l.category] ?? 'secondary'} className="text-xs">
-                      {l.category}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className={`text-right font-medium ${Number(l.amount) < 0 ? 'text-destructive' : ''}`}>
-                    {money(l.amount)}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {payslip.lines.map((l) => {
+                const isOT = l.ruleCode === 'OT'
+                return (
+                  <TableRow key={l.id} className={isOT ? 'bg-amber-50/60' : ''}>
+                    <TableCell className="font-medium">
+                      {l.ruleName}
+                      {isOT && (
+                        <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+                          overtime
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">{l.ruleCode}</TableCell>
+                    <TableCell>
+                      <Badge variant={categoryVariant[l.category] ?? 'secondary'} className="text-xs">
+                        {l.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className={`text-right font-medium ${isOT ? 'text-amber-700' : Number(l.amount) < 0 ? 'text-destructive' : ''}`}>
+                      {money(l.amount)}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
 

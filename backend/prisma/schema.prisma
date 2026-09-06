@@ -326,6 +326,7 @@ model Payrun {
   periodStart  DateTime
   periodEnd    DateTime
   status       PayrunStatus    @default(DRAFT)
+  emailedAt    DateTime?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -344,17 +345,18 @@ model Payslip {
   contract    Contract?     @relation(fields: [contractId], references: [id])
   periodStart DateTime
   periodEnd   DateTime
-  workedDays  Decimal       @default(0) @db.Decimal(6, 2)
-  gross       Decimal       @default(0) @db.Decimal(12, 2)
-  deductions  Decimal       @default(0) @db.Decimal(12, 2)
-  net         Decimal       @default(0) @db.Decimal(12, 2)
-  status      PayslipStatus @default(DRAFT)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  workedDays    Decimal       @default(0) @db.Decimal(6, 2)
+  overtimeHours Decimal       @default(0) @db.Decimal(6, 2)
+  gross         Decimal       @default(0) @db.Decimal(12, 2)
+  deductions    Decimal       @default(0) @db.Decimal(12, 2)
+  net           Decimal       @default(0) @db.Decimal(12, 2)
+  status        PayslipStatus @default(DRAFT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   lines PayslipLine[]
 
-  @@unique([payrunId, employeeId])
+  @@unique([payrunId, employeeId, contractId])
   @@index([employeeId])
 }
 

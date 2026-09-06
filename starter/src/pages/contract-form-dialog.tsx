@@ -26,6 +26,7 @@ const schema = z
     wage: z.number().positive('Wage must be greater than 0'),
     status: z.enum(['DRAFT', 'RUNNING', 'EXPIRED']),
     departmentId: z.string().optional(),
+    structureId: z.string().optional(),
   })
   .refine((c) => !c.endDate || c.endDate >= c.startDate, {
     message: 'End date must be on or after start date',
@@ -48,6 +49,7 @@ const empty: FormValues = {
   wage: 0,
   status: 'DRAFT',
   departmentId: '',
+  structureId: '',
 }
 
 export function ContractFormDialog({ open, onOpenChange, employeeId, contract }: Props) {
@@ -57,6 +59,11 @@ export function ContractFormDialog({ open, onOpenChange, employeeId, contract }:
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: () => http<{ id: string; name: string }[]>('/departments'),
+  })
+
+  const { data: structures = [] } = useQuery({
+    queryKey: ['salary-structures'],
+    queryFn: () => http<{ id: string; name: string }[]>('/salary-structures'),
   })
 
   const {
@@ -78,6 +85,7 @@ export function ContractFormDialog({ open, onOpenChange, employeeId, contract }:
               wage: Number(contract.wage),
               status: contract.status,
               departmentId: contract.department?.id ?? '',
+              structureId: contract.structure?.id ?? '',
             }
           : empty,
       )
@@ -95,6 +103,7 @@ export function ContractFormDialog({ open, onOpenChange, employeeId, contract }:
         wage: values.wage,
         status: values.status,
         departmentId: values.departmentId || null,
+        structureId: values.structureId || null,
       }
       return isEdit ? contractsApi.update(contract!.id, payload) : contractsApi.create(payload)
     },
@@ -183,10 +192,19 @@ export function ContractFormDialog({ open, onOpenChange, employeeId, contract }:
             </select>
           </div>
           <div className="space-y-2">
-            <Label>Salary Structure / Notes</Label>
-            <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
-              Structure Type: Employee Salary - This running contract is the source for payroll calculation in the active period.
-            </div>
+            <Label htmlFor="structureId">Salary Structure</Label>
+            <select
+              id="structureId"
+              className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+              {...register('structureId')}
+            >
+              <option value="">None</option>
+              {structures.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

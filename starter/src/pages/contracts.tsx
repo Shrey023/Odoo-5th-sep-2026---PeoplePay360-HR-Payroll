@@ -21,18 +21,18 @@ const statusVariant: Record<ContractStatus, 'default' | 'secondary' | 'destructi
 
 export function ContractsPage() {
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const { data: contracts = [], isLoading } = useQuery({
     queryKey: ['contracts-all'],
     queryFn: () => contractsApi.listAll(),
   })
 
-  const filtered = contracts.filter(
-    (c) =>
-      !search ||
-      c.reference.toLowerCase().includes(search.toLowerCase()) ||
-      (c.employee as any)?.name?.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = contracts.filter((c) => {
+    if (search && !c.reference.toLowerCase().includes(search.toLowerCase()) && !(c.employee as any)?.name?.toLowerCase().includes(search.toLowerCase())) return false
+    if (statusFilter && c.status !== statusFilter) return false
+    return true
+  })
 
   return (
     <div className="space-y-4">
@@ -40,12 +40,24 @@ export function ContractsPage() {
         <h2 className="text-2xl font-semibold">Contracts</h2>
       </div>
 
-      <Input
-        placeholder="Search contracts…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
-      />
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder="Search contracts…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">All statuses</option>
+          <option value="RUNNING">Running</option>
+          <option value="DRAFT">Draft</option>
+          <option value="EXPIRED">Expired</option>
+        </select>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>

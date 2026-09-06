@@ -46,6 +46,7 @@ export function AttendancePage() {
   const [newOpen, setNewOpen] = useState(false)
   const [editing, setEditing] = useState<Attendance | null>(null)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const { data: records = [], isLoading } = useQuery({
     queryKey: ['attendance'],
@@ -78,9 +79,11 @@ export function AttendancePage() {
     onError: (e: Error) => toast.error(e.message),
   })
 
-  const filtered = records.filter(
-    (r) => !search || r.employee.name.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = records.filter((r) => {
+    if (search && !r.employee.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (statusFilter && r.status !== statusFilter) return false
+    return true
+  })
 
   return (
     <div className="space-y-4">
@@ -93,12 +96,25 @@ export function AttendancePage() {
         )}
       </div>
 
-      <Input
-        placeholder="Search attendance…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
-      />
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder="Search employee…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">All statuses</option>
+          <option value="PRESENT">Present</option>
+          <option value="LATE">Late</option>
+          <option value="ABSENT">Absent</option>
+          <option value="OVERTIME">Overtime</option>
+        </select>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>

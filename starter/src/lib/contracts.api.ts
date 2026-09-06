@@ -27,6 +27,7 @@ export interface ContractInput {
   wage: number
   status?: ContractStatus
   departmentId?: string | null
+  structureId?: string | null
 }
 
 export const contractsApi = {

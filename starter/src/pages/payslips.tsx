@@ -39,18 +39,18 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'outline' | 'destr
 
 export function PayslipsPage() {
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
 
   const { data: payslips = [], isLoading } = useQuery({
     queryKey: ['payslips-all'],
     queryFn: () => http<PayslipRow[]>('/payruns/payslips/all'),
   })
 
-  const filtered = payslips.filter(
-    (p) =>
-      !search ||
-      p.employee.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.payrun.name.toLowerCase().includes(search.toLowerCase()),
-  )
+  const filtered = payslips.filter((p) => {
+    if (search && !p.employee.name.toLowerCase().includes(search.toLowerCase()) && !p.payrun.name.toLowerCase().includes(search.toLowerCase())) return false
+    if (statusFilter && p.status !== statusFilter) return false
+    return true
+  })
 
   return (
     <div className="space-y-4">
@@ -58,12 +58,24 @@ export function PayslipsPage() {
         <h2 className="text-2xl font-semibold">Payslips</h2>
       </div>
 
-      <Input
-        placeholder="Search payslips…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="max-w-xs"
-      />
+      <div className="flex gap-2 flex-wrap">
+        <Input
+          placeholder="Search employee or payrun…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="max-w-xs"
+        />
+        <select
+          className="h-9 rounded-md border bg-transparent px-3 text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">All statuses</option>
+          <option value="COMPUTED">Computed</option>
+          <option value="DONE">Done</option>
+          <option value="DRAFT">Draft</option>
+        </select>
+      </div>
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>
