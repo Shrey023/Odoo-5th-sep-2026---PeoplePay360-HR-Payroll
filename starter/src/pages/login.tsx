@@ -48,25 +48,10 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div className="space-y-3">
-          <p className="text-xs text-sidebar-foreground/40 mb-2">Quick login - click to fill:</p>
-          {[
-            { role: 'Admin', email: 'admin@oxp.com' },
-            { role: 'Payroll Manager', email: 'payroll@oxp.com' },
-            { role: 'HR Manager', email: 'hr@oxp.com' },
-            { role: 'Employee', email: 'aarav@oxp.com' },
-          ].map((u) => (
-            <button
-              key={u.email}
-              type="button"
-              onClick={() => { setEmail(u.email); setPassword('password123') }}
-              className="w-full text-left rounded-lg border border-sidebar-border px-4 py-3 hover:bg-sidebar-accent transition-colors group"
-            >
-              <div className="text-xs text-sidebar-foreground/50 mb-0.5">{u.role}</div>
-              <div className="text-sm font-medium text-sidebar-foreground/80 group-hover:text-sidebar-foreground">{u.email}</div>
-            </button>
-          ))}
-          <p className="text-xs text-sidebar-foreground/40 text-center pt-1">All demo accounts: password123</p>
+        <div className="space-y-2">
+          <p className="text-sm text-sidebar-foreground/50 leading-relaxed">
+            Sign in with your work email to access your account. Contact your administrator if you need access.
+          </p>
         </div>
       </div>
 
