@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Pencil, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -118,7 +119,9 @@ export function AttendancePage() {
             <TableBody>
               {filtered.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.employee.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link to={`/employees/${r.employee.id}`} className="hover:underline text-primary">{r.employee.name}</Link>
+                  </TableCell>
                   <TableCell>{new Date(r.checkIn).toLocaleString()}</TableCell>
                   <TableCell>{r.checkOut ? new Date(r.checkOut).toLocaleString() : '-'}</TableCell>
                   <TableCell>{r.workedHours}</TableCell>

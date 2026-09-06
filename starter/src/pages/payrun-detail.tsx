@@ -190,7 +190,9 @@ export function PayrunDetailPage() {
                   const basicLine = s.lines.find((l) => l.category === 'BASIC')
                   return (
                     <TableRow key={s.id}>
-                      <TableCell className="font-medium">{s.employee.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link to={`/employees/${s.employee.id}`} className="hover:underline text-primary">{s.employee.name}</Link>
+                      </TableCell>
                       <TableCell>
                         {warn ? (
                           <span className="text-xs text-amber-600">{warn.type === 'MISSING_BANK' ? 'A/C missing' : warn.type === 'DUPLICATE_PAYSLIP' ? 'Duplicate' : warn.type}</span>
