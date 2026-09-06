@@ -225,11 +225,13 @@ export function AppLayout() {
         </div>
       </aside>
 
-      <div className="flex flex-1 flex-col min-w-0">
-        <header className="flex h-13 items-center border-b bg-card px-6 gap-3">
+      <div className="flex flex-1 flex-col min-w-0 min-h-screen">
+        <header className="flex h-12 items-center border-b bg-card/80 backdrop-blur px-6 gap-3 sticky top-0 z-10">
+          <span className="text-xs text-muted-foreground">PeoplePay360</span>
+          <span className="text-muted-foreground/40 text-xs">/</span>
           <h1 className="text-sm font-semibold text-foreground">{pageLabel}</h1>
         </header>
-        <main className="flex-1 overflow-auto p-6 bg-background">
+        <main className="flex-1 p-6 bg-background">
           <Outlet />
         </main>
       </div>
