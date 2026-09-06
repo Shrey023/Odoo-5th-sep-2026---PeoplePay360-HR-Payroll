@@ -1,13 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
-import { CalendarCheck, Clock, DollarSign, Plane } from 'lucide-react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { CalendarCheck, Clock, DollarSign, Plane, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { http } from '@/lib/http'
 import type { EmployeeDetail } from '@/lib/employees.api'
+import { RequestFormDialog } from './request-form-dialog'
 
 const money = (n: number) =>
   new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n)
@@ -27,6 +30,9 @@ const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
 }
 
 export function MyDashboardPage() {
+  const [requestOpen, setRequestOpen] = useState(false)
+  const qc = useQueryClient()
+
   const { data: emp } = useQuery<EmployeeDetail | null>({
     queryKey: ['my-profile'],
     queryFn: () => http<EmployeeDetail | null>('/employees/me'),
@@ -278,8 +284,11 @@ export function MyDashboardPage() {
 
       {/* Leave requests */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-sm">Leave Requests</CardTitle>
+          <Button size="sm" onClick={() => setRequestOpen(true)}>
+            <Plus className="size-4" /> Request Leave
+          </Button>
         </CardHeader>
         <CardContent>
           {requests.length === 0 ? (
@@ -314,6 +323,16 @@ export function MyDashboardPage() {
           )}
         </CardContent>
       </Card>
+      <RequestFormDialog
+        open={requestOpen}
+        onOpenChange={(o) => {
+          setRequestOpen(o)
+          if (!o) {
+            qc.invalidateQueries({ queryKey: ['my-requests'] })
+            qc.invalidateQueries({ queryKey: ['my-balances'] })
+          }
+        }}
+      />
     </div>
   )
 }
