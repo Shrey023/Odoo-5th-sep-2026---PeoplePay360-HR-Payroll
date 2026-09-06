@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express'
 
 import * as employeeService from '../services/employee.service.js'
+import { prisma } from '../config/prisma.js'
 import { ok } from '../utils/apiResponse.js'
 import { createEmployeeSchema, updateEmployeeSchema } from '../validators/employee.validator.js'
 
 export async function getMe(req: Request, res: Response) {
-  const userId = req.user!.sub
-  const { prisma } = await import('../config/prisma.js')
+  const userId = req.user!.id
   const emp = await prisma.employee.findFirst({ where: { userId } })
   if (!emp) {
     ok(res, { message: 'No employee profile linked', data: null })

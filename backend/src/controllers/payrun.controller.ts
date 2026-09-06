@@ -88,7 +88,7 @@ export async function listAllPayslips(_req: Request, res: Response) {
 }
 
 export async function listMyPayslips(req: Request, res: Response) {
-  const userId = req.user!.sub
+  const userId = req.user!.id
   const emp = await prisma.employee.findFirst({ where: { userId } })
   if (!emp) { ok(res, { message: 'No employee linked', data: [] }); return }
   const data = await prisma.payslip.findMany({
