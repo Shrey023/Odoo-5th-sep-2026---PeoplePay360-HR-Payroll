@@ -116,6 +116,7 @@ export async function compute(id: string) {
   const computed: {
     employeeId: string
     contractId: string
+    workedDays: number
     gross: number
     deductions: number
     net: number
@@ -136,10 +137,21 @@ export async function compute(id: string) {
       skipped.push({ employeeId: emp.id, name: emp.name, reason: 'No running contract for period' })
       continue
     }
-    const result = computePayslip(Number(contract.wage), engineRules)
+
+    const attendanceCount = await prisma.attendance.count({
+      where: {
+        employeeId: emp.id,
+        checkIn: { gte: payrun.periodStart, lte: payrun.periodEnd },
+        status: { in: ['PRESENT', 'LATE', 'OVERTIME'] },
+      },
+    })
+    const workedDays = attendanceCount > 0 ? attendanceCount : 22
+
+    const result = computePayslip(Number(contract.wage), engineRules, workedDays)
     computed.push({
       employeeId: emp.id,
       contractId: contract.id,
+      workedDays,
       gross: result.gross,
       deductions: result.deductions,
       net: result.net,
@@ -157,6 +169,7 @@ export async function compute(id: string) {
           contractId: c.contractId,
           periodStart: payrun.periodStart,
           periodEnd: payrun.periodEnd,
+          workedDays: c.workedDays,
           gross: c.gross,
           deductions: c.deductions,
           net: c.net,

@@ -36,27 +36,35 @@ function resolveBase(base: PercentBase, contractWage: number, categories: Record
   return categories[base] ?? 0
 }
 
-// Only allow FORMULA expressions to reference categories[...] and arithmetic.
-// Blocks anything that could reach globals, calls, or property access beyond `categories`.
-const FORMULA_ALLOWED = /^[\s\d+\-*/().[\]']*(categories\['[A-Z_]+'\][\s\d+\-*/().[\]']*)*$/
+// Only allow FORMULA expressions to reference categories[...], workedDays, and arithmetic.
+const FORMULA_ALLOWED = /^[\s\d+\-*/().[\]'workedDays]*(categories\['[A-Z_]+'\][\s\d+\-*/().[\]']*)*$/
 
-function evalFormula(expression: string, categories: Record<string, number>): number {
+function evalFormula(expression: string, categories: Record<string, number>, workedDays: number): number {
   const normalized = expression.replace(/categories\["([A-Z_]+)"\]/g, "categories['$1']")
   if (!FORMULA_ALLOWED.test(normalized)) {
     throw new Error(`Unsafe salary formula: ${expression}`)
   }
-  const fn = new Function('categories', `"use strict"; return (${normalized});`)
-  const value = fn(categories)
+  const fn = new Function('categories', 'workedDays', `"use strict"; return (${normalized});`)
+  const value = fn(categories, workedDays)
   if (typeof value !== 'number' || Number.isNaN(value)) {
     throw new Error(`Salary formula did not return a number: ${expression}`)
   }
   return value
 }
 
+export interface EngineResult {
+  lines: ComputedLine[]
+  categories: Record<string, number>
+  gross: number
+  deductions: number
+  net: number
+  workedDays: number
+}
+
 // Run salary rules in sequence order against a contract wage.
-// Each rule appends one payslip line and updates its category running total,
-// so later PERCENTAGE/FORMULA rules can reference earlier categories.
-export function computePayslip(contractWage: number, rules: EngineRule[]): EngineResult {
+// workedDays is the count of actual PRESENT/LATE/OVERTIME attendance records for the period.
+// FORMULA rules can reference workedDays directly, e.g. categories['BASIC'] * (workedDays / 22)
+export function computePayslip(contractWage: number, rules: EngineRule[], workedDays = 22): EngineResult {
   const ordered = [...rules].sort((a, b) => a.sequence - b.sequence)
   const categories: Record<string, number> = {
     BASIC: 0,
@@ -80,7 +88,7 @@ export function computePayslip(contractWage: number, rules: EngineRule[]): Engin
         break
       }
       case 'FORMULA':
-        amount = evalFormula(rule.expression ?? '0', categories)
+        amount = evalFormula(rule.expression ?? '0', categories, workedDays)
         break
       default:
         amount = 0
@@ -109,5 +117,5 @@ export function computePayslip(contractWage: number, rules: EngineRule[]): Engin
   const deductions = round2(categories.DEDUCTION)
   const net = round2(categories.NET || gross - deductions)
 
-  return { lines, categories, gross, deductions, net }
+  return { lines, categories, gross, deductions, net, workedDays }
 }
