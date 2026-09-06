@@ -122,7 +122,7 @@ export function AppLayout() {
 
   return (
     <div className="flex min-h-svh">
-      <aside className="hidden w-60 shrink-0 flex-col bg-sidebar md:flex">
+      <aside className="hidden w-60 shrink-0 flex-col bg-sidebar md:flex h-screen sticky top-0 overflow-hidden">
         {/* Logo */}
         <div className="flex items-center gap-2.5 px-5 py-5 border-b border-sidebar-border">
           <div className="size-7 rounded-md bg-primary flex items-center justify-center shrink-0">
