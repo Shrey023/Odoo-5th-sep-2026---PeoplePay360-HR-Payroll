@@ -23,7 +23,7 @@ leaveRouter.delete('/allocations/:id', authorize(...HR_ROLES), asyncHandler(cont
 
 // Requests
 leaveRouter.get('/requests', asyncHandler(controller.listRequests))
-leaveRouter.post('/requests', authorize(...HR_ROLES), asyncHandler(controller.createRequest))
+leaveRouter.post('/requests', asyncHandler(controller.createRequest))
 leaveRouter.post('/requests/:id/decide', authorize(...HR_ROLES), asyncHandler(controller.decideRequest))
 leaveRouter.delete('/requests/:id', authorize(...HR_ROLES), asyncHandler(controller.removeRequest))
 
