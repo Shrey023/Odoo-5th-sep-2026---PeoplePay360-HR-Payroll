@@ -87,9 +87,9 @@ export function TimeOffRequestsPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((r) => (
-                <TableRow key={r.id}>
+                <TableRow key={r.id} className="cursor-pointer">
                   <TableCell className="font-medium">
-                    <Link to={`/employees/${r.employee.id}`} className="hover:underline text-primary">{r.employee.name}</Link>
+                    <Link to={`/time-off/requests/${r.id}`} className="hover:underline text-primary">{r.employee.name}</Link>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">

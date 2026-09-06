@@ -19,6 +19,7 @@ import { SalaryRulesPage } from '@/pages/salary-rules'
 import { SalaryStructureDetailPage } from '@/pages/salary-structure-detail'
 import { SalaryStructuresPage } from '@/pages/salary-structures'
 import { TimeOffAllocationsPage } from '@/pages/time-off-allocations'
+import { TimeOffRequestDetailPage } from '@/pages/time-off-request-detail'
 import { TimeOffRequestsPage } from '@/pages/time-off-requests'
 import { TimeOffTypesPage } from '@/pages/time-off-types'
 import { MyDashboardPage } from '@/pages/my-dashboard'
@@ -70,6 +71,7 @@ export default function App() {
         {/* Time Off group */}
         <Route path="/time-off" element={<Navigate to="/time-off/requests" replace />} />
         <Route path="/time-off/requests" element={<TimeOffRequestsPage />} />
+        <Route path="/time-off/requests/:id" element={<TimeOffRequestDetailPage />} />
         <Route path="/time-off/allocations" element={<TimeOffAllocationsPage />} />
         <Route path="/time-off/types" element={<TimeOffTypesPage />} />
 

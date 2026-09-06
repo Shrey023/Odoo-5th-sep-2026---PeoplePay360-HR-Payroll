@@ -81,6 +81,12 @@ const requestInclude = {
   type: { select: { id: true, name: true, unit: true, requiresAllocation: true } },
 } satisfies Prisma.TimeOffRequestInclude
 
+export async function getRequest(id: string) {
+  const req = await prisma.timeOffRequest.findUnique({ where: { id }, include: requestInclude })
+  if (!req) throw new HttpError(404, 'Request not found')
+  return req
+}
+
 export function listRequests(filters: { employeeId?: string; status?: string }) {
   const where: Prisma.TimeOffRequestWhereInput = {}
   if (filters.employeeId) where.employeeId = filters.employeeId

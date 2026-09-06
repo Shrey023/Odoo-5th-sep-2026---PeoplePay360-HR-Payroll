@@ -84,6 +84,7 @@ export const timeOffApi = {
 
   listRequests: (employeeId?: string) =>
     http<TimeOffRequest[]>(`/time-off/requests${employeeId ? `?employeeId=${employeeId}` : ''}`),
+  getRequest: (id: string) => http<TimeOffRequest>(`/time-off/requests/${id}`),
   createRequest: (input: RequestInput) =>
     http<TimeOffRequest>('/time-off/requests', { method: 'POST', body: JSON.stringify(input) }),
   decideRequest: (id: string, status: RequestStatus) =>

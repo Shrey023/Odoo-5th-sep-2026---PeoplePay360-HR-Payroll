@@ -63,6 +63,11 @@ export async function removeAllocation(req: Request, res: Response) {
 
 // Requests
 
+export async function getRequest(req: Request, res: Response) {
+  const data = await leaveService.getRequest(req.params.id)
+  ok(res, { message: 'Time off request', data })
+}
+
 export async function listRequests(req: Request, res: Response) {
   const data = await leaveService.listRequests({
     employeeId: req.query.employeeId as string | undefined,
