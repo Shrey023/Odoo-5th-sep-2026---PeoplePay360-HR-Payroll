@@ -34,13 +34,15 @@ type FormValues = z.infer<typeof schema>
 interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
+  fixedEmployeeId?: string
 }
 
-export function RequestFormDialog({ open, onOpenChange }: Props) {
+export function RequestFormDialog({ open, onOpenChange, fixedEmployeeId }: Props) {
   const qc = useQueryClient()
   const { data: employees = [] } = useQuery({
     queryKey: ['employees', ''],
     queryFn: () => employeesApi.list(),
+    enabled: !fixedEmployeeId,
   })
   const { data: types = [] } = useQuery({
     queryKey: ['time-off-types'],
@@ -52,10 +54,16 @@ export function RequestFormDialog({ open, onOpenChange }: Props) {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) })
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: fixedEmployeeId ? { employeeId: fixedEmployeeId } : undefined,
+  })
 
   const save = useMutation({
-    mutationFn: (v: FormValues) => timeOffApi.createRequest(v),
+    mutationFn: (v: FormValues) => timeOffApi.createRequest({
+      ...v,
+      employeeId: fixedEmployeeId ?? v.employeeId,
+    }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['time-off-requests'] })
       toast.success('Request created')
@@ -72,24 +80,24 @@ export function RequestFormDialog({ open, onOpenChange }: Props) {
           <DialogTitle>New time off request</DialogTitle>
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit((v) => save.mutate(v))}>
-          <div className="space-y-2">
-            <Label htmlFor="employeeId">Employee</Label>
-            <select
-              id="employeeId"
-              className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
-              {...register('employeeId')}
-            >
-              <option value="">Select...</option>
-              {employees.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.name}
-                </option>
-              ))}
-            </select>
-            {errors.employeeId && (
-              <p className="text-xs text-destructive">{errors.employeeId.message}</p>
-            )}
-          </div>
+          {!fixedEmployeeId && (
+            <div className="space-y-2">
+              <Label htmlFor="employeeId">Employee</Label>
+              <select
+                id="employeeId"
+                className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"
+                {...register('employeeId')}
+              >
+                <option value="">Select...</option>
+                {employees.map((e) => (
+                  <option key={e.id} value={e.id}>{e.name}</option>
+                ))}
+              </select>
+              {errors.employeeId && (
+                <p className="text-xs text-destructive">{errors.employeeId.message}</p>
+              )}
+            </div>
+          )}
           <div className="space-y-2">
             <Label htmlFor="typeId">Type</Label>
             <select
