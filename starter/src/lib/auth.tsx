@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+import { queryClient } from '../main'
 import { getToken, http, setToken } from './http'
 
 export type Role =
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     setToken(null)
     setUser(null)
+    queryClient.clear()
   }
 
   function hasRole(...roles: Role[]) {
