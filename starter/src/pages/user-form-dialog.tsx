@@ -106,7 +106,7 @@ export function UserFormDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
         <form className="space-y-4" onSubmit={handleSubmit((v) => save.mutate(v))}>
           <div className="space-y-2">
-            <Label htmlFor="employeeId">Employee <span className="text-muted-foreground text-xs">(optional — link to employee record)</span></Label>
+            <Label htmlFor="employeeId">Employee <span className="text-muted-foreground text-xs">(optional - link to employee record)</span></Label>
             <select
               id="employeeId"
               className="h-9 w-full rounded-md border bg-transparent px-3 text-sm"

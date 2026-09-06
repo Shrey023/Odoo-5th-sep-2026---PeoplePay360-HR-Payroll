@@ -197,11 +197,11 @@ export function PayrunDetailPage() {
                         {warn ? (
                           <span className="text-xs text-amber-600">{warn.type === 'MISSING_BANK' ? 'A/C missing' : warn.type === 'DUPLICATE_PAYSLIP' ? 'Duplicate' : warn.type}</span>
                         ) : (
-                          <span className="text-xs text-muted-foreground">—</span>
+                          <span className="text-xs text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">{s.workedDays}</TableCell>
-                      <TableCell className="text-right">{basicLine ? money(basicLine.amount) : '—'}</TableCell>
+                      <TableCell className="text-right">{basicLine ? money(basicLine.amount) : '-'}</TableCell>
                       <TableCell className="text-right">{money(s.gross)}</TableCell>
                       <TableCell className="text-right font-semibold">{money(s.net)}</TableCell>
                       <TableCell>

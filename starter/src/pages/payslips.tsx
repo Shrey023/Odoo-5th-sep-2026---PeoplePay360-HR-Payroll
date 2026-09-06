@@ -96,7 +96,7 @@ export function PayslipsPage() {
                     </Link>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {p.payrun.periodStart.slice(0, 10)} — {p.payrun.periodEnd.slice(0, 10)}
+                    {p.payrun.periodStart.slice(0, 10)} - {p.payrun.periodEnd.slice(0, 10)}
                   </TableCell>
                   <TableCell className="text-right">-</TableCell>
                   <TableCell className="text-right">{money(p.gross)}</TableCell>

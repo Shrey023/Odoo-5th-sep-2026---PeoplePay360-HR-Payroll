@@ -242,7 +242,7 @@ function EditAttendanceDialog({
   return (
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
-        <DialogHeader><DialogTitle>Edit Attendance — {record.employee.name}</DialogTitle></DialogHeader>
+        <DialogHeader><DialogTitle>Edit Attendance - {record.employee.name}</DialogTitle></DialogHeader>
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit({ checkIn, checkOut: checkOut || null, status }) }}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

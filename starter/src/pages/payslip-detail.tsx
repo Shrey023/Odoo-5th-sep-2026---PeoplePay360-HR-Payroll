@@ -75,7 +75,7 @@ export function PayslipDetailPage() {
             Payslip / {payslip.employee.name}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {payslip.payrun.name} — {payslip.periodStart?.slice(0, 10)} to {payslip.periodEnd?.slice(0, 10)}
+            {payslip.payrun.name} - {payslip.periodStart?.slice(0, 10)} to {payslip.periodEnd?.slice(0, 10)}
           </p>
         </div>
         <div className="flex items-center gap-2">

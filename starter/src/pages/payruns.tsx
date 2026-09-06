@@ -79,7 +79,7 @@ export function PayrunsPage() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      {p.periodStart.slice(0, 10)} — {p.periodEnd.slice(0, 10)}
+                      {p.periodStart.slice(0, 10)} - {p.periodEnd.slice(0, 10)}
                     </TableCell>
                     <TableCell>{p.structure.name}</TableCell>
                     <TableCell>{p._count.payslips}</TableCell>

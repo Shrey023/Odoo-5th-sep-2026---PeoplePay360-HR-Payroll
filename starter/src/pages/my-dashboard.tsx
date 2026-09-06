@@ -78,7 +78,7 @@ export function MyDashboardPage() {
   const kpis = [
     {
       label: 'Latest Net Pay',
-      value: latestPayslip ? money(Number(latestPayslip.net)) : '—',
+      value: latestPayslip ? money(Number(latestPayslip.net)) : '-',
       sub: latestPayslip ? latestPayslip.payrun?.name : 'No payslips yet',
       icon: DollarSign,
       color: 'text-green-600',
@@ -260,7 +260,7 @@ export function MyDashboardPage() {
                   return (
                     <TableRow key={a.id}>
                       <TableCell className="text-sm">{new Date(a.checkIn).toLocaleString()}</TableCell>
-                      <TableCell className="text-sm">{a.checkOut ? new Date(a.checkOut).toLocaleString() : <span className="text-muted-foreground">—</span>}</TableCell>
+                      <TableCell className="text-sm">{a.checkOut ? new Date(a.checkOut).toLocaleString() : <span className="text-muted-foreground">-</span>}</TableCell>
                       <TableCell className="text-sm">{a.workedHours}h</TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${s.bg} ${s.text}`}>

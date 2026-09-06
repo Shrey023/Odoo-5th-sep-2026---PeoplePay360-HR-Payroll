@@ -123,7 +123,7 @@ export function TimeOffAllocationsPage() {
                       {a.status === 'APPROVED' ? `${remaining} ${a.type.unit.toLowerCase()}` : '-'}
                     </TableCell>
                     <TableCell>
-                      {a.validFrom.slice(0, 10)} — {a.validTo.slice(0, 10)}
+                      {a.validFrom.slice(0, 10)} - {a.validTo.slice(0, 10)}
                     </TableCell>
                     <TableCell>
                       <Badge variant={allocVariant[a.status]}>{a.status}</Badge>
