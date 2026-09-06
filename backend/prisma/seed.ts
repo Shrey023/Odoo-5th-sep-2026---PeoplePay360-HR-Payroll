@@ -183,7 +183,7 @@ async function main() {
     data: { name: 'Annual Leave', unit: 'DAYS', requiresAllocation: true, approvalRequired: true, color: '#1971c2' },
   })
   const sick = await prisma.timeOffType.create({
-    data: { name: 'Sick Leave', unit: 'DAYS', requiresAllocation: true, approvalRequired: false, color: '#e03131' },
+    data: { name: 'Sick Leave', unit: 'DAYS', requiresAllocation: true, approvalRequired: true, color: '#e03131' },
   })
   await prisma.timeOffType.create({
     data: { name: 'Unpaid Leave', unit: 'DAYS', requiresAllocation: false, approvalRequired: true, color: '#e8590c' },
