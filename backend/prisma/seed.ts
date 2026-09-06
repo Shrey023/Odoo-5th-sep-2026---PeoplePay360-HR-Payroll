@@ -138,6 +138,14 @@ async function main() {
   const createdEmployees: { id: string; name: string; email: string; wage: number }[] = []
 
   for (const e of employeesData) {
+    // Create user account for every named employee (Aarav already has one from above)
+    let userId = e.userId ?? null
+    if (!userId) {
+      const u = await prisma.user.create({
+        data: { name: e.name, email: e.email, roles: ['EMPLOYEE'], passwordHash: pw },
+      })
+      userId = u.id
+    }
     const emp = await prisma.employee.create({
       data: {
         name: e.name,
@@ -146,7 +154,7 @@ async function main() {
         departmentId: e.dept.id,
         companyId: company.id,
         scheduleId: e.sched.id,
-        userId: e.userId ?? null,
+        userId,
         bankAccount: e.bank,
         employeeType: e.type as any,
       },
@@ -381,6 +389,9 @@ async function main() {
     const empType = types[i % types.length]
     const sched = i % 5 === 0 ? flexSchedule : schedule
 
+    const bulkUser = await prisma.user.create({
+      data: { name, email, roles: ['EMPLOYEE'], passwordHash: pw },
+    })
     const emp = await prisma.employee.create({
       data: {
         name,
@@ -391,6 +402,7 @@ async function main() {
         scheduleId: sched.id,
         bankAccount: bank,
         employeeType: empType,
+        userId: bulkUser.id,
       },
     })
     const seq = String(bulkSeq++).padStart(3, '0')
