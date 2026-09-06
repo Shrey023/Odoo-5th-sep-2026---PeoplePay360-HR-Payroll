@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Plus, X } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
@@ -108,7 +109,9 @@ export function TimeOffAllocationsPage() {
                 const remaining = Math.max(0, allocated - taken)
                 return (
                   <TableRow key={a.id}>
-                    <TableCell className="font-medium">{a.employee.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link to={`/employees/${a.employee.id}`} className="hover:underline text-primary">{a.employee.name}</Link>
+                    </TableCell>
                     <TableCell>{a.type.name}</TableCell>
                     <TableCell className="text-right">
                       {allocated} {a.type.unit.toLowerCase()}

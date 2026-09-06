@@ -1,4 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Link } from "react-router-dom"
 import { Check, Plus, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -87,7 +88,9 @@ export function TimeOffRequestsPage() {
             <TableBody>
               {filtered.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.employee.name}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link to={`/employees/${r.employee.id}`} className="hover:underline text-primary">{r.employee.name}</Link>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
                       <span>{r.type.name}</span>
