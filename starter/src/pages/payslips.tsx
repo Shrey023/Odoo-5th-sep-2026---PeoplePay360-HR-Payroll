@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { http } from '@/lib/http'
+import { downloadFile, http } from '@/lib/http'
 import { payrunsApi } from '@/lib/payruns.api'
 
 interface PayslipRow {
@@ -108,12 +108,7 @@ export function PayslipsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        window.open(
-                          `${import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api'}/payruns/payslips/${p.id}/pdf`,
-                          '_blank',
-                        )
-                      }}
+                      onClick={() => downloadFile(`/payruns/payslips/${p.id}/pdf`, `payslip-${p.id}.pdf`).catch(() => {})}
                     >
                       PDF
                     </Button>

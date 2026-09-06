@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { ArrowLeft, Download } from 'lucide-react'
-import { Link, useParams } from 'react-router-dom'
+import { ArrowLeft, Download, ExternalLink } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -43,6 +43,7 @@ const categoryVariant: Record<string, 'default' | 'secondary' | 'outline' | 'des
 
 export function PayslipDetailPage() {
   const { id = '' } = useParams()
+  const navigate = useNavigate()
 
   const { data: payslip, isLoading } = useQuery({
     queryKey: ['payslip', id],
@@ -63,10 +64,8 @@ export function PayslipDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild>
-        <Link to="/payslips">
-          <ArrowLeft className="size-4" /> Back
-        </Link>
+      <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+        <ArrowLeft className="size-4" /> Back
       </Button>
 
       <div className="flex items-start justify-between">
@@ -84,6 +83,11 @@ export function PayslipDetailPage() {
           </Badge>
           <Button size="sm" variant="outline" onClick={downloadPdf}>
             <Download className="size-4" /> Print Payslip
+          </Button>
+          <Button size="sm" variant="outline" asChild>
+            <Link to={`/payruns/${payslip.payrun.id}`}>
+              <ExternalLink className="size-4" /> Open Payrun
+            </Link>
           </Button>
         </div>
       </div>

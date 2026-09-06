@@ -28,6 +28,9 @@ export interface UpdateAttendanceInput {
 export const attendanceApi = {
   list: (employeeId?: string) =>
     http<Attendance[]>(`/attendance${employeeId ? `?employeeId=${employeeId}` : ''}`),
+  active: () => http<Attendance | null>('/attendance/active'),
+  checkIn: () => http<Attendance>('/attendance/checkin', { method: 'POST' }),
+  checkOut: () => http<Attendance>('/attendance/checkout', { method: 'POST' }),
   create: (input: CreateAttendanceInput) =>
     http<Attendance>('/attendance', { method: 'POST', body: JSON.stringify(input) }),
   update: (id: string, input: UpdateAttendanceInput) =>

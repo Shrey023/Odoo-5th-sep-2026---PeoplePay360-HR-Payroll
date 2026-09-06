@@ -54,3 +54,39 @@ export async function remove(id: string) {
   if (!current) throw new HttpError(404, 'Attendance record not found')
   await prisma.attendance.delete({ where: { id } })
 }
+
+export async function getActiveSession(userId: string) {
+  const emp = await prisma.employee.findFirst({ where: { userId } })
+  if (!emp) return null
+  return prisma.attendance.findFirst({
+    where: { employeeId: emp.id, checkOut: null },
+    include,
+    orderBy: { checkIn: 'desc' },
+  })
+}
+
+export async function checkIn(userId: string) {
+  const emp = await prisma.employee.findFirst({ where: { userId } })
+  if (!emp) throw new HttpError(400, 'No employee profile linked to your account')
+  const open = await prisma.attendance.findFirst({ where: { employeeId: emp.id, checkOut: null } })
+  if (open) throw new HttpError(400, 'Already checked in')
+  return prisma.attendance.create({
+    data: { employeeId: emp.id, checkIn: new Date(), workedHours: '0', manualEdit: false },
+    include,
+  })
+}
+
+export async function checkOut(userId: string) {
+  const emp = await prisma.employee.findFirst({ where: { userId } })
+  if (!emp) throw new HttpError(400, 'No employee profile linked to your account')
+  const open = await prisma.attendance.findFirst({ where: { employeeId: emp.id, checkOut: null }, orderBy: { checkIn: 'desc' } })
+  if (!open) throw new HttpError(400, 'Not checked in')
+  const now = new Date()
+  const hours = hoursBetween(open.checkIn, now)
+  const status = hours > 9 ? 'OVERTIME' : 'PRESENT'
+  return prisma.attendance.update({
+    where: { id: open.id },
+    data: { checkOut: now, workedHours: String(hours), status, manualEdit: false },
+    include,
+  })
+}

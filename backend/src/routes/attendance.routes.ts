@@ -9,6 +9,9 @@ export const attendanceRouter = Router()
 
 attendanceRouter.use(authenticate)
 
+attendanceRouter.get('/active', asyncHandler(controller.getActive))
+attendanceRouter.post('/checkin', asyncHandler(controller.checkIn))
+attendanceRouter.post('/checkout', asyncHandler(controller.checkOut))
 attendanceRouter.get('/', asyncHandler(controller.list))
 attendanceRouter.post('/', authorize(...HR_ROLES), asyncHandler(controller.create))
 attendanceRouter.patch('/:id', authorize(...HR_ROLES), asyncHandler(controller.update))

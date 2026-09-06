@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
+import { AttendanceWidget } from '@/components/attendance-widget'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
@@ -230,6 +231,9 @@ export function AppLayout() {
           <span className="text-xs text-muted-foreground">PeoplePay360</span>
           <span className="text-muted-foreground/40 text-xs">/</span>
           <h1 className="text-sm font-semibold text-foreground">{pageLabel}</h1>
+          <div className="ml-auto">
+            <AttendanceWidget />
+          </div>
         </header>
         <main className="flex-1 p-6 bg-background">
           <Outlet />

@@ -28,3 +28,18 @@ export async function remove(req: Request, res: Response) {
   await attendanceService.remove(req.params.id)
   ok(res, { message: 'Attendance deleted' })
 }
+
+export async function getActive(req: Request, res: Response) {
+  const data = await attendanceService.getActiveSession(req.user!.id)
+  ok(res, { message: 'Active session', data })
+}
+
+export async function checkIn(req: Request, res: Response) {
+  const data = await attendanceService.checkIn(req.user!.id)
+  ok(res, { statusCode: 201, message: 'Checked in', data })
+}
+
+export async function checkOut(req: Request, res: Response) {
+  const data = await attendanceService.checkOut(req.user!.id)
+  ok(res, { message: 'Checked out', data })
+}
