@@ -18,7 +18,7 @@ echo "==> Starting backend API on http://localhost:4000"
 API_PID=$!
 
 echo "==> Starting frontend on http://localhost:5173"
-(cd "$ROOT/starter" && npm run dev) &
+(cd "$ROOT/frontend" && npm run dev) &
 WEB_PID=$!
 
 # On exit, stop both dev servers.
