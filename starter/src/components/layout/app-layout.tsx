@@ -133,7 +133,7 @@ export function AppLayout() {
           <span className="text-sm font-bold text-sidebar-foreground tracking-tight">PeoplePay360</span>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-0.5 p-3 overflow-y-auto">
+        <nav className="flex flex-1 flex-col gap-0.5 p-3 overflow-y-auto min-h-0">
           {nav.map((entry) => {
             const isHR = hasRole('ADMIN', 'HR_MANAGER', 'HR_PAYROLL_MANAGER', 'HR_PAYROLL_USER')
             const isEmployee = !isHR
